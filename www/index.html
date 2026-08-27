@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05070a">
+<title>TACTICAL MIND &amp; BODY</title>
+<style>
+  :root{
+    --bg:#05070a;
+    --bg-panel:#0b120e;
+    --bg-panel-2:#0e1710;
+    --line: rgba(166,255,77,.22);
+    --accent:#a6ff4d;
+    --accent-dim:#5f8f34;
+    --amber:#ffb000;
+    --danger:#ff3b3b;
+    --text:#c9f7c9;
+    --text-dim:#7a9a7a;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Courier New", monospace;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--mono);
+    overflow-x:hidden;
+    -webkit-user-select:none; user-select:none;
+  }
+  #app{
+    max-width:480px; margin:0 auto; min-height:100vh;
+    padding: env(safe-area-inset-top) 14px calc(env(safe-area-inset-bottom) + 14px);
+    position:relative;
+    display:flex; flex-direction:column;
+  }
+  /* scanline / crt atmosphere */
+  .scan{
+    position:fixed; inset:0; pointer-events:none; z-index:50; mix-blend-mode:overlay; opacity:.5;
+    background: repeating-linear-gradient(to bottom, rgba(166,255,77,.05) 0px, rgba(166,255,77,.05) 1px, transparent 2px, transparent 3px);
+  }
+  .flicker{ position:fixed; inset:0; pointer-events:none; z-index:51; background:radial-gradient(ellipse at 50% 0%, rgba(166,255,77,.05), transparent 60%); animation:flick 6s infinite; }
+  @keyframes flick{ 0%,97%,100%{opacity:1;} 98%{opacity:.85;} 99%{opacity:1;} }
+  @media (prefers-reduced-motion:reduce){ .flicker{animation:none;} }
+
+  .topbar{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 2px 14px; font-size:11px; letter-spacing:.12em; color:var(--text-dim);
+    border-bottom:1px solid var(--line); margin-bottom:16px;
+  }
+  .topbar b{color:var(--accent);}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;margin-right:6px;box-shadow:0 0 6px var(--accent); animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+  .screen{display:none; flex-direction:column; gap:16px; flex:1; animation:fadein .25s ease;}
+  .screen.active{display:flex;}
+  @keyframes fadein{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
+
+  h1.title{
+    font-size:26px; letter-spacing:.06em; margin:6px 0 2px; color:var(--accent);
+    text-shadow:0 0 14px rgba(166,255,77,.35); line-height:1.15;
+  }
+  .subtitle{ color:var(--text-dim); font-size:12px; letter-spacing:.08em; margin:0 0 10px;}
+
+  .panel{
+    position:relative; background:linear-gradient(180deg, var(--bg-panel), var(--bg-panel-2));
+    border:1px solid var(--line); border-radius:2px; padding:16px;
+  }
+  .panel::before,.panel::after{content:'';position:absolute;width:14px;height:14px;}
+  .panel::before{top:-1px;left:-1px;border-top:2px solid var(--accent);border-left:2px solid var(--accent);}
+  .panel::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--accent);border-right:2px solid var(--accent);}
+
+  .btn{
+    display:block; width:100%; text-align:center; background:transparent;
+    border:1px solid var(--accent-dim); color:var(--accent); font-family:var(--mono);
+    font-size:14px; letter-spacing:.1em; padding:15px 12px; border-radius:2px;
+    cursor:pointer; text-transform:uppercase; position:relative; overflow:hidden;
+  }
+  .btn:active{ transform:scale(.98); background:rgba(166,255,77,.08); }
+  .btn.primary{ background:var(--accent); color:#04250a; border-color:var(--accent); font-weight:700; }
+  .btn.primary:active{ background:#8be03d; }
+  .btn.ghost{ border-color:var(--line); color:var(--text-dim); }
+  .btn.danger{ border-color:var(--danger); color:var(--danger); }
+  .btn.danger:active{ background:rgba(255,59,59,.1); }
+  .btn:disabled{ opacity:.35; }
+  .btn-row{ display:flex; gap:10px; }
+  .btn-row .btn{ flex:1; }
+
+  .stack{display:flex; flex-direction:column; gap:10px;}
+
+  .exlist{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;}
+  .exlist li{
+    display:flex; justify-content:space-between; gap:10px; align-items:center;
+    border:1px solid var(--line); padding:10px 12px; font-size:13px; border-radius:2px;
+    background:rgba(166,255,77,.03);
+  }
+  .exlist li span.reps{ color:var(--amber); font-weight:700; white-space:nowrap; }
+  .exlist li span.idx{ color:var(--text-dim); margin-right:8px;}
+
+  .clockwrap{ position:relative; display:flex; align-items:center; justify-content:center; padding:22px 0;}
+  .radar{
+    position:absolute; width:190px; height:190px; border-radius:50%;
+    border:1px solid var(--line);
+    background: conic-gradient(from 0deg, rgba(166,255,77,.35), transparent 40%);
+    animation: spin 2.4s linear infinite;
+  }
+  @media (prefers-reduced-motion:reduce){ .radar{animation:none;} }
+  @keyframes spin{ to{ transform:rotate(360deg);} }
+  .clock{
+    position:relative; font-size:42px; letter-spacing:.04em; color:var(--accent);
+    text-shadow:0 0 18px rgba(166,255,77,.4); background:var(--bg); padding:14px 10px; border-radius:50%;
+    width:150px; height:150px; display:flex; align-items:center; justify-content:center;
+    border:1px solid var(--line);
+  }
+
+  .bartrack{ height:6px; background:rgba(166,255,77,.08); border-radius:3px; overflow:hidden; border:1px solid var(--line);}
+  .barfill{ height:100%; background:var(--accent); width:100%; transition:width 1s linear; }
+
+  .roundhead{ display:flex; justify-content:space-between; align-items:baseline; }
+  .roundhead .num{ font-size:20px; color:var(--accent); letter-spacing:.08em;}
+
+  .field-label{ font-size:11px; letter-spacing:.1em; color:var(--text-dim); margin-bottom:6px; display:block; text-transform:uppercase;}
+  input[type=number], input[type=text]{
+    width:100%; background:#03130a; border:1px solid var(--accent-dim); color:var(--accent);
+    font-family:var(--mono); font-size:20px; padding:12px; border-radius:2px; letter-spacing:.05em;
+  }
+  input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 2px rgba(166,255,77,.15); }
+
+  .mnemo-block{
+    white-space:pre-wrap; font-size:14px; line-height:1.7; color:var(--amber);
+    border:1px dashed var(--amber); padding:14px; border-radius:2px; background:rgba(255,176,0,.05);
+  }
+  .msg{ font-size:13px; color:var(--text-dim); line-height:1.6; }
+  .msg.warn{ color:var(--danger); }
+  .msg.ok{ color:var(--accent); }
+
+  .optlist{ display:flex; flex-direction:column; gap:8px; }
+  .opt{
+    border:1px solid var(--line); background:transparent; color:var(--text); text-align:left;
+    padding:12px; font-family:var(--mono); font-size:13px; border-radius:2px;
+  }
+  .opt:active{ transform:scale(.99); }
+  .opt.correct{ border-color:var(--accent); color:var(--accent); background:rgba(166,255,77,.08); }
+  .opt.wrong{ border-color:var(--danger); color:var(--danger); background:rgba(255,59,59,.08); }
+
+  .histcard{ display:flex; flex-direction:column; gap:6px; font-size:12.5px; }
+  .histcard .row{ display:flex; justify-content:space-between; color:var(--text-dim); }
+  .histcard .row b{ color:var(--text); font-weight:600; }
+  .histcard .tag{ align-self:flex-start; font-size:10px; letter-spacing:.08em; padding:2px 8px; border:1px solid var(--danger); color:var(--danger); border-radius:10px; margin-top:2px;}
+
+  .settingsgrid{ display:flex; flex-direction:column; gap:14px; }
+  .seg{ display:flex; border:1px solid var(--accent-dim); border-radius:2px; overflow:hidden;}
+  .seg button{ flex:1; background:transparent; border:none; color:var(--text-dim); font-family:var(--mono); padding:10px; font-size:12px; letter-spacing:.06em;}
+  .seg button.active{ background:var(--accent); color:#04250a; font-weight:700;}
+  .two-col{ display:flex; gap:10px; }
+  .two-col > div{ flex:1; }
+
+  .empty{ text-align:center; color:var(--text-dim); font-size:12px; padding:30px 10px; }
+  ::selection{ background:rgba(166,255,77,.3); }
+</style>
+</head>
+<body>
+<div class="scan"></div>
+<div class="flicker"></div>
+<div id="app">
+
+  <div class="topbar">
+    <span><span class="dot"></span>SYS <b id="topStatus">READY</b></span>
+    <span id="topClock">--:--</span>
+  </div>
+
+  <!-- HOME -->
+  <section class="screen active" id="screen-home">
+    <div>
+      <h1 class="title">TACTICAL<br>MIND &amp; BODY</h1>
+      <p class="subtitle">// ПРОТОКОЛ ДВОЙНОЙ НАГРУЗКИ · DUAL-TASK v1.0</p>
+    </div>
+    <div class="panel stack">
+      <span class="msg">Физическая нагрузка на пределе + когнитивная работа в момент истощения. Циклы: <b id="homeRounds" style="color:var(--accent)"></b>. Повторения: <b id="homeReps" style="color:var(--amber)"></b>.</span>
+    </div>
+    <div class="stack" style="margin-top:auto;">
+      <button class="btn primary" id="btnStart">▶ Начать операцию</button>
+      <div class="btn-row">
+        <button class="btn ghost" id="btnHistory">Архив миссий</button>
+        <button class="btn ghost" id="btnSettings">Настройки</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="screen" id="screen-settings">
+    <h1 class="title" style="font-size:20px;">НАСТРОЙКИ</h1>
+    <div class="panel settingsgrid">
+      <div>
+        <span class="field-label">Режим повторений</span>
+        <div class="seg">
+          <button data-mode="fixed" id="modeFixed">Фиксированный</button>
+          <button data-mode="range" id="modeRange">Диапазон</button>
+        </div>
+      </div>
+
+      <div id="fixedRow">
+        <span class="field-label">Повторений на упражнение</span>
+        <input type="number" id="inFixed" min="1" max="100" inputmode="numeric">
+      </div>
+
+      <div id="rangeRow" class="two-col" style="display:none;">
+        <div>
+          <span class="field-label">Мин.</span>
+          <input type="number" id="inMin" min="1" max="100" inputmode="numeric">
+        </div>
+        <div>
+          <span class="field-label">Макс.</span>
+          <input type="number" id="inMax" min="1" max="100" inputmode="numeric">
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div>
+          <span class="field-label">Кругов всего</span>
+          <input type="number" id="inRounds" min="1" max="20" inputmode="numeric">
+        </div>
+        <div>
+          <span class="field-label">Брифинг, сек</span>
+          <input type="number" id="inBrief" min="5" max="120" inputmode="numeric">
+        </div>
+      </div>
+      <div>
+        <span class="field-label">Когнитивная пауза, сек</span>
+        <input type="number" id="inBreak" min="30" max="600" inputmode="numeric">
+      </div>
+    </div>
+    <div class="stack" style="margin-top:auto;">
+      <button class="btn primary" id="btnSaveSettings">Сохранить</button>
+      <button class="btn ghost" id="btnBackFromSettings">Назад</button>
+    </div>
+  </section>
+
+  <!-- BRIEFING -->
+  <section class="screen" id="screen-briefing">
+    <div class="roundhead">
+      <span class="num" id="briefRoundLabel">БРИФИНГ · КРУГ 1 из 5</span>
+      <span id="briefTimer" style="color:var(--amber); font-size:18px;">00:30</span>
+    </div>
+    <div class="bartrack"><div class="barfill" id="briefBar"></div></div>
+    <div class="panel">
+      <span class="field-label">Порядок выполнения</span>
+      <ol class="exlist" id="briefList" style="list-style:none;"></ol>
+    </div>
+    <p class="msg">Изучите порядок. Выполняются подряд, без отдыха между упражнениями.</p>
+    <div class="stack" style="margin-top:auto;">
+      <button class="btn primary" id="btnStartRound">Приступить немедленно</button>
+      <button class="btn danger" id="btnEvac1">Эвакуация (завершить тренировку)</button>
+    </div>
+  </section>
+
+  <!-- ROUND -->
+  <section class="screen" id="screen-round">
+    <div class="roundhead">
+      <span class="num" id="roundLabel">КРУГ 1 из 5</span>
+      <span id="roundStatus" style="color:var(--text-dim); font-size:11px;">В РАБОТЕ</span>
+    </div>
+    <div class="clockwrap">
+      <div class="radar"></div>
+      <div class="clock" id="stopwatch">00:00</div>
+    </div>
+    <div class="panel">
+      <span class="field-label">Выполнить подряд</span>
+      <ol class="exlist" id="roundList" style="list-style:none;"></ol>
+    </div>
+    <div class="stack" style="margin-top:auto;">
+      <button class="btn primary" id="btnRoundDone">Круг завершён</button>
+      <button class="btn danger" id="btnEvac2">Эвакуация (завершить тренировку)</button>
+    </div>
+  </section>
+
+  <!-- COGNITIVE BREAK -->
+  <section class="screen" id="screen-break">
+    <div class="roundhead">
+      <span class="num">КОГНИТИВНАЯ ПАУЗА</span>
+      <span id="breakTimer" style="color:var(--amber); font-size:18px;">03:00</span>
+    </div>
+    <div class="bartrack"><div class="barfill" id="breakBar"></div></div>
+
+    <div class="panel stack" id="breakBody"></div>
+
+    <div class="stack" style="margin-top:auto;">
+      <button class="btn primary" id="btnNextRound" disabled>Следующий круг</button>
+      <button class="btn danger" id="btnEvac3">Эвакуация (завершить тренировку)</button>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="screen" id="screen-history">
+    <h1 class="title" style="font-size:20px;">АРХИВ МИССИЙ</h1>
+    <div class="stack" id="historyList"></div>
+    <div class="stack" style="margin-top:auto;">
+      <button class="btn ghost" id="btnClearHistory">Очистить архив</button>
+      <button class="btn primary" id="btnHomeFromHistory">В главное меню</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===================== DATA POOLS ===================== */
+
+var EXERCISES = [
+  {id:1,  name:"Бёрпи с отжиманием"},
+  {id:2,  name:"Алмазные отжимания"},
+  {id:3,  name:"Приседания с выпрыгиванием"},
+  {id:4,  name:"Скалолаз"},
+  {id:5,  name:"Складка (пресс)"},
+  {id:6,  name:"Классические отжимания"},
+  {id:7,  name:"Выпады с прыжком (свитчи)"},
+  {id:8,  name:"Подъём корпуса на пресс"},
+  {id:9,  name:"Прыжки «звезда»"},
+  {id:10, name:"Обратные отжимания от опоры"},
+  {id:11, name:"Присед «пистолетик» (поочерёдно)"},
+  {id:12, name:"Скручивания на пресс"},
+  {id:13, name:"Отжимания с хлопком"},
+  {id:14, name:"Бёрпи без отжимания"},
+  {id:15, name:"Высокие колени (бег на месте)"}
+];
+
+var TEXT_TASKS = [
+  "Опишите вслух комнату 2 минуты, не используя ни одного слова с буквой «О».",
+  "Назовите вслух цепочку из 20 несвязанных между собой слов без пауз дольше 2 секунд.",
+  "Произнесите алфавит в обратном порядке — от «Я» до «А».",
+  "Назовите 15 стран мира на разные буквы, без повторов.",
+  "Считайте вслух от 100 до 1 через каждые 3 числа: 100, 97, 94…",
+  "Назовите 10 военных терминов, каждый на новую букву алфавита.",
+  "Опишите маршрут от дома до ближайшего магазина, называя только ориентиры, без цифр.",
+  "Произнесите скороговорку «Карл у Клары украл кораллы» 5 раз подряд без ошибок.",
+  "Назовите 12 позывных, которые вы бы использовали в рейде.",
+  "Перечислите 20 предметов тактического снаряжения без повторов."
+];
+
+var PASSWORDS = ["Вольфрам","Гранит","Купол","Сокол","Барьер","Тайфун","Кремень","Орбита","Стрелка","Полигон","Гроза","Аргон"];
+var SECTOR_LETTERS = ["A","B","C","D","E","F"];
+
+/* ===================== STATE ===================== */
+
+var DEFAULT_SETTINGS = {
+  repMode: "fixed",
+  fixedReps: 15,
+  minReps: 5,
+  maxReps: 10,
+  totalRounds: 5,
+  briefingSeconds: 30,
+  breakSeconds: 180
+};
+
+var state = {
+  screen: "home",
+  settings: loadSettings(),
+  session: null,
+  timers: {}
+};
+
+function loadSettings(){
+  try{
+    var raw = localStorage.getItem("tmb_settings");
+    if(!raw) return Object.assign({}, DEFAULT_SETTINGS);
+    var parsed = JSON.parse(raw);
+    return Object.assign({}, DEFAULT_SETTINGS, parsed);
+  }catch(e){ return Object.assign({}, DEFAULT_SETTINGS); }
+}
+function saveSettings(){
+  localStorage.setItem("tmb_settings", JSON.stringify(state.settings));
+}
+
+function loadHistory(){
+  try{
+    var raw = localStorage.getItem("tmb_history");
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+function saveHistoryEntry(entry){
+  var h = loadHistory();
+  h.unshift(entry);
+  localStorage.setItem("tmb_history", JSON.stringify(h));
+}
+function clearHistory(){
+  localStorage.removeItem("tmb_history");
+}
+
+/* ===================== HELPERS ===================== */
+
+function $(id){ return document.getElementById(id); }
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function pick(arr){ return arr[randInt(0,arr.length-1)]; }
+function shuffle(arr){
+  var a = arr.slice();
+  for(var i=a.length-1;i>0;i--){
+    var j = randInt(0,i);
+    var t=a[i]; a[i]=a[j]; a[j]=t;
+  }
+  return a;
+}
+function fmtClock(totalSeconds){
+  totalSeconds = Math.max(0, Math.round(totalSeconds));
+  var m = Math.floor(totalSeconds/60);
+  var s = totalSeconds%60;
+  return (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+}
+function fmtStopwatch(ms){
+  var totalSec = Math.floor(ms/1000);
+  var m = Math.floor(totalSec/60);
+  var s = totalSec%60;
+  return (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+}
+function getReps(){
+  var s = state.settings;
+  if(s.repMode === "range"){
+    var min = Math.min(s.minReps, s.maxReps);
+    var max = Math.max(s.minReps, s.maxReps);
+    return randInt(min, max);
+  }
+  return s.fixedReps;
+}
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(function(el){ el.classList.remove("active"); });
+  $(id).classList.add("active");
+  state.screen = id;
+}
+function clearTimer(name){
+  if(state.timers[name]){ clearInterval(state.timers[name]); delete state.timers[name]; }
+}
+function clearAllTimers(){
+  Object.keys(state.timers).forEach(clearTimer);
+}
+
+/* ===================== TOP BAR CLOCK ===================== */
+
+function tickTopClock(){
+  var d = new Date();
+  var hh = (d.getHours()<10?"0":"")+d.getHours();
+  var mm = (d.getMinutes()<10?"0":"")+d.getMinutes();
+  $("topClock").textContent = hh+":"+mm;
+}
+setInterval(tickTopClock, 1000*10);
+tickTopClock();
+
+/* ===================== HOME ===================== */
+
+function renderHome(){
+  $("homeRounds").textContent = state.settings.totalRounds;
+  $("homeReps").textContent = state.settings.repMode === "fixed"
+    ? (state.settings.fixedReps + " повт.")
+    : (Math.min(state.settings.minReps,state.settings.maxReps) + "–" + Math.max(state.settings.minReps,state.settings.maxReps) + " повт.");
+  $("topStatus").textContent = "READY";
+}
+
+$("btnStart").addEventListener("click", function(){
+  startSession();
+});
+$("btnHistory").addEventListener("click", function(){
+  renderHistory();
+  showScreen("screen-history");
+});
+$("btnSettings").addEventListener("click", function(){
+  renderSettingsForm();
+  showScreen("screen-settings");
+});
+
+/* ===================== SETTINGS SCREEN ===================== */
+
+function renderSettingsForm(){
+  var s = state.settings;
+  setRepMode(s.repMode);
+  $("inFixed").value = s.fixedReps;
+  $("inMin").value = s.minReps;
+  $("inMax").value = s.maxReps;
+  $("inRounds").value = s.totalRounds;
+  $("inBrief").value = s.briefingSeconds;
+  $("inBreak").value = s.breakSeconds;
+}
+function setRepMode(mode){
+  state.settings.repMode = mode;
+  $("modeFixed").classList.toggle("active", mode==="fixed");
+  $("modeRange").classList.toggle("active", mode==="range");
+  $("fixedRow").style.display = mode==="fixed" ? "block":"none";
+  $("rangeRow").style.display = mode==="range" ? "flex":"none";
+}
+$("modeFixed").addEventListener("click", function(){ setRepMode("fixed"); });
+$("modeRange").addEventListener("click", function(){ setRepMode("range"); });
+
+$("btnSaveSettings").addEventListener("click", function(){
+  var s = state.settings;
+  s.fixedReps = clampInt($("inFixed").value, 1, 100, DEFAULT_SETTINGS.fixedReps);
+  s.minReps   = clampInt($("inMin").value, 1, 100, DEFAULT_SETTINGS.minReps);
+  s.maxReps   = clampInt($("inMax").value, 1, 100, DEFAULT_SETTINGS.maxReps);
+  s.totalRounds = clampInt($("inRounds").value, 1, 20, DEFAULT_SETTINGS.totalRounds);
+  s.briefingSeconds = clampInt($("inBrief").value, 5, 120, DEFAULT_SETTINGS.briefingSeconds);
+  s.breakSeconds = clampInt($("inBreak").value, 30, 600, DEFAULT_SETTINGS.breakSeconds);
+  saveSettings();
+  renderHome();
+  showScreen("screen-home");
+});
+$("btnBackFromSettings").addEventListener("click", function(){
+  renderHome();
+  showScreen("screen-home");
+});
+function clampInt(v, min, max, fallback){
+  var n = parseInt(v,10);
+  if(isNaN(n)) return fallback;
+  return Math.min(max, Math.max(min, n));
+}
+
+/* ===================== SESSION / BRIEFING ===================== */
+
+function startSession(){
+  state.session = {
+    startedAt: Date.now(),
+    currentRound: 0, // completed rounds count
+    totalRounds: state.settings.totalRounds,
+    roundTimesMs: [],
+    cognitiveSolved: 0,
+    cognitiveTotal: 0,
+    pendingCheck: null,
+    currentExercises: []
+  };
+  goToBriefing();
+}
+
+function goToBriefing(){
+  var s = state.session;
+  var roundNum = s.currentRound + 1;
+  var chosen = shuffle(EXERCISES).slice(0,4).map(function(ex){
+    return { id: ex.id, name: ex.name, reps: getReps() };
+  });
+  s.currentExercises = chosen;
+
+  $("briefRoundLabel").textContent = "БРИФИНГ · КРУГ " + roundNum + " из " + s.totalRounds;
+  $("topStatus").textContent = "БРИФИНГ";
+  renderExList("briefList", chosen);
+
+  var total = state.settings.briefingSeconds;
+  var remaining = total;
+  $("briefTimer").textContent = fmtClock(remaining);
+  $("briefBar").style.width = "100%";
+
+  clearTimer("brief");
+  state.timers.brief = setInterval(function(){
+    remaining--;
+    $("briefTimer").textContent = fmtClock(remaining);
+    $("briefBar").style.width = Math.max(0,(remaining/total*100)) + "%";
+    if(remaining <= 0){
+      clearTimer("brief");
+      goToRound();
+    }
+  }, 1000);
+
+  showScreen("screen-briefing");
+}
+
+function renderExList(listId, exercises){
+  var ol = $(listId);
+  ol.innerHTML = "";
+  exercises.forEach(function(ex, i){
+    var li = document.createElement("li");
+    li.innerHTML = '<span><span class="idx">'+(i+1)+'.</span>'+ex.name+'</span><span class="reps">'+ex.reps+' повт.</span>';
+    ol.appendChild(li);
+  });
+}
+
+$("btnStartRound").addEventListener("click", function(){
+  clearTimer("brief");
+  goToRound();
+});
+$("btnEvac1").addEventListener("click", evacuate);
+$("btnEvac2").addEventListener("click", evacuate);
+$("btnEvac3").addEventListener("click", evacuate);
+
+/* ===================== ROUND (COMBAT) ===================== */
+
+function goToRound(){
+  var s = state.session;
+  var roundNum = s.currentRound + 1;
+  $("roundLabel").textContent = "КРУГ " + roundNum + " из " + s.totalRounds;
+  $("topStatus").textContent = "КРУГ " + roundNum;
+  renderExList("roundList", s.currentExercises);
+
+  var startTs = Date.now();
+  s.roundStartTs = startTs;
+  $("stopwatch").textContent = "00:00";
+
+  clearTimer("round");
+  state.timers.round = setInterval(function(){
+    $("stopwatch").textContent = fmtStopwatch(Date.now()-startTs);
+  }, 250);
+
+  showScreen("screen-round");
+}
+
+$("btnRoundDone").addEventListener("click", function(){
+  var s = state.session;
+  clearTimer("round");
+  var elapsed = Date.now() - s.roundStartTs;
+  s.roundTimesMs.push(elapsed);
+  s.currentRound++;
+  goToBreak();
+});
+
+/* ===================== COGNITIVE BREAK ===================== */
+
+function goToBreak(){
+  var s = state.session;
+  $("topStatus").textContent = "ПАУЗА";
+  $("btnNextRound").disabled = true;
+  $("btnNextRound").textContent = (s.currentRound >= s.totalRounds) ? "Завершить миссию" : "Следующий круг";
+
+  var total = state.settings.breakSeconds;
+  var remaining = total;
+  $("breakTimer").textContent = fmtClock(remaining);
+  $("breakBar").style.width = "100%";
+
+  clearTimer("break");
+  state.timers.brk = setInterval(function(){
+    remaining--;
+    $("breakTimer").textContent = fmtClock(remaining);
+    $("breakBar").style.width = Math.max(0,(remaining/total*100)) + "%";
+    if(remaining <= 0){
+      clearTimer("brk");
+    }
+  }, 1000);
+
+  renderBreakBody();
+  showScreen("screen-break");
+}
+
+function enableNextRound(){
+  $("btnNextRound").disabled = false;
+}
+
+function renderBreakBody(){
+  var body = $("breakBody");
+  body.innerHTML = "";
+  var s = state.session;
+
+  if(s.pendingCheck){
+    renderMnemonicCheck(body, s.pendingCheck, function(){
+      s.pendingCheck = null;
+      renderNewCognitiveTask(body);
+    });
+  } else {
+    renderNewCognitiveTask(body);
+  }
+}
+
+function renderNewCognitiveTask(body){
+  var wrap = document.createElement("div");
+  wrap.className = "stack";
+  body.appendChild(wrap);
+
+  var type = pick(["math","math","text","mnemonic"]); // math slightly more frequent
+  if(type === "math") renderMathTask(wrap);
+  else if(type === "text") renderTextTask(wrap);
+  else renderMnemonicTask(wrap);
+}
+
+/* ---- math ---- */
+function renderMathTask(wrap){
+  var s = state.session;
+  var mode = pick(["multiply","subtract"]);
+  var question, answer;
+  if(mode === "multiply"){
+    var a = randInt(12,45), b = randInt(11,25);
+    question = a + " × " + b;
+    answer = a*b;
+  } else {
+    var base = pick([1000,500]);
+    var step = base === 1000 ? 7 : 13;
+    var k = randInt(0,6);
+    var n = base - step*k;
+    question = n + " − " + step;
+    answer = n - step;
+  }
+  s.cognitiveTotal++;
+
+  var label = document.createElement("span");
+  label.className = "field-label";
+  label.textContent = "Математическая задача";
+  wrap.appendChild(label);
+
+  var q = document.createElement("div");
+  q.className = "panel";
+  q.style.textAlign = "center";
+  q.style.fontSize = "22px";
+  q.style.color = "var(--accent)";
+  q.textContent = question + " = ?";
+  wrap.appendChild(q);
+
+  var input = document.createElement("input");
+  input.type = "number";
+  input.inputMode = "numeric";
+  input.placeholder = "Введите ответ";
+  wrap.appendChild(input);
+
+  var msg = document.createElement("div");
+  msg.className = "msg";
+  wrap.appendChild(msg);
+
+  var btn = document.createElement("button");
+  btn.className = "btn primary";
+  btn.textContent = "Проверить";
+  wrap.appendChild(btn);
+
+  btn.addEventListener("click", function(){
+    var v = parseInt(input.value,10);
+    if(isNaN(v)){
+      msg.textContent = "Введите число.";
+      msg.className = "msg warn";
+      return;
+    }
+    if(v === answer){
+      msg.textContent = "Верно. Задача решена.";
+      msg.className = "msg ok";
+      input.disabled = true;
+      btn.disabled = true;
+      s.cognitiveSolved++;
+      enableNextRound();
+    } else {
+      msg.textContent = "Ошибка! Попробуйте снова.";
+      msg.className = "msg warn";
+    }
+  });
+}
+
+/* ---- text / linguistic ---- */
+function renderTextTask(wrap){
+  var s = state.session;
+  s.cognitiveTotal++;
+  var task = pick(TEXT_TASKS);
+
+  var label = document.createElement("span");
+  label.className = "field-label";
+  label.textContent = "Лингвистическая задача";
+  wrap.appendChild(label);
+
+  var q = document.createElement("div");
+  q.className = "panel msg";
+  q.style.fontSize = "14px";
+  q.style.color = "var(--text)";
+  q.textContent = task;
+  wrap.appendChild(q);
+
+  var btn = document.createElement("button");
+  btn.className = "btn primary";
+  btn.textContent = "Готово";
+  wrap.appendChild(btn);
+
+  btn.addEventListener("click", function(){
+    btn.disabled = true;
+    btn.textContent = "Выполнено";
+    s.cognitiveSolved++;
+    enableNextRound();
+  });
+}
+
+/* ---- visual mnemonic ---- */
+function generateMnemonic(){
+  var post = randInt(1,9);
+  var sector = pick(SECTOR_LETTERS) + "-" + randInt(1,5);
+  var password = pick(PASSWORDS);
+  var freq = randInt(300,499) + "." + randInt(1,9);
+
+  var fields = [
+    {key:"post", label:"номер поста", value:String(post), pool: function(){ return [1,2,3,4,5,6,7,8,9].filter(function(x){return x!==post;}).map(String); }},
+    {key:"sector", label:"сектор", value:sector, pool: function(){
+      var out = [];
+      while(out.length<8){ var v = pick(SECTOR_LETTERS)+"-"+randInt(1,5); if(v!==sector && out.indexOf(v)===-1) out.push(v); }
+      return out;
+    }},
+    {key:"password", label:"пароль", value:password, pool: function(){ return PASSWORDS.filter(function(p){return p!==password;}); }},
+    {key:"freq", label:"частота", value:freq+" МГц", pool: function(){
+      var out=[];
+      while(out.length<8){ var v = randInt(300,499)+"."+randInt(1,9); if(v!==freq && out.indexOf(v)===-1) out.push(v); }
+      return out.map(function(v){return v+" МГц";});
+    }}
+  ];
+
+  var text = "ВЫРЕЗКА ИЗ ТАКТИЧЕСКОГО УСТАВА:\nПост №" + post + "\nСектор " + sector + "\nПароль «" + password + "»\nЧастота " + freq + " МГц";
+
+  var quizField = pick(fields);
+  var distractors = shuffle(quizField.pool()).slice(0,3);
+  var options = shuffle([quizField.value].concat(distractors));
+
+  return {
+    text: text,
+    question: "Какой был " + quizField.label + " в прошлом сообщении?",
+    options: options,
+    correct: quizField.value
+  };
+}
+
+function renderMnemonicTask(wrap){
+  var s = state.session;
+  var m = generateMnemonic();
+
+  var label = document.createElement("span");
+  label.className = "field-label";
+  label.textContent = "Визуальная мнемоника — запомните за 30 секунд";
+  wrap.appendChild(label);
+
+  var block = document.createElement("div");
+  block.className = "mnemo-block";
+  block.textContent = m.text;
+  wrap.appendChild(block);
+
+  var timerMsg = document.createElement("div");
+  timerMsg.className = "msg";
+  timerMsg.textContent = "Скрытие через 30 сек…";
+  wrap.appendChild(timerMsg);
+
+  var secs = 30;
+  var iv = setInterval(function(){
+    secs--;
+    timerMsg.textContent = "Скрытие через " + secs + " сек…";
+    if(secs<=0){
+      clearInterval(iv);
+      block.textContent = "";
+      block.style.display = "none";
+      timerMsg.className = "msg ok";
+      timerMsg.textContent = "Информация зафиксирована. Вопрос будет задан на следующем перерыве.";
+      s.pendingCheck = m;
+      // participation counts toward totals; resolved when checked next break
+      enableNextRound();
+    }
+  }, 1000);
+}
+
+/* ---- mnemonic check (asked at start of the following break) ---- */
+function renderMnemonicCheck(body, pending, onDone){
+  var s = state.session;
+  s.cognitiveTotal++;
+
+  var wrap = document.createElement("div");
+  wrap.className = "stack";
+  body.appendChild(wrap);
+
+  var label = document.createElement("span");
+  label.className = "field-label";
+  label.textContent = "Проверка памяти";
+  wrap.appendChild(label);
+
+  var q = document.createElement("div");
+  q.className = "panel";
+  q.style.color = "var(--amber)";
+  q.textContent = pending.question;
+  wrap.appendChild(q);
+
+  var list = document.createElement("div");
+  list.className = "optlist";
+  wrap.appendChild(list);
+
+  pending.options.forEach(function(opt){
+    var b = document.createElement("button");
+    b.className = "opt";
+    b.textContent = opt;
+    b.addEventListener("click", function(){
+      Array.prototype.forEach.call(list.children, function(c){ c.disabled = true; });
+      if(opt === pending.correct){
+        b.classList.add("correct");
+        s.cognitiveSolved++;
+      } else {
+        b.classList.add("wrong");
+        Array.prototype.forEach.call(list.children, function(c){
+          if(c.textContent === pending.correct) c.classList.add("correct");
+        });
+      }
+      var cont = document.createElement("button");
+      cont.className = "btn ghost";
+      cont.style.marginTop = "10px";
+      cont.textContent = "Продолжить";
+      wrap.appendChild(cont);
+      cont.addEventListener("click", onDone);
+    });
+    list.appendChild(b);
+  });
+}
+
+$("btnNextRound").addEventListener("click", function(){
+  clearTimer("brk");
+  var s = state.session;
+  if(s.currentRound >= s.totalRounds){
+    finishSession(false);
+  } else {
+    goToBriefing();
+  }
+});
+
+/* ===================== EVACUATION / FINISH ===================== */
+
+function evacuate(){
+  clearAllTimers();
+  finishSession(true);
+}
+
+function finishSession(aborted){
+  var s = state.session;
+  var totalMs = s.roundTimesMs.reduce(function(a,b){return a+b;},0);
+  var entry = {
+    date: new Date().toISOString(),
+    roundsCompleted: s.currentRound,
+    totalRounds: s.totalRounds,
+    totalPhysicalMs: totalMs,
+    cognitiveSolved: s.cognitiveSolved,
+    cognitiveTotal: s.cognitiveTotal,
+    aborted: !!aborted
+  };
+  saveHistoryEntry(entry);
+  state.session = null;
+  clearAllTimers();
+  renderHistory();
+  showScreen("screen-history");
+}
+
+/* ===================== HISTORY ===================== */
+
+function renderHistory(){
+  var list = $("historyList");
+  var h = loadHistory();
+  list.innerHTML = "";
+  if(h.length === 0){
+    list.innerHTML = '<div class="panel empty">Архив пуст. Проведите первую операцию.</div>';
+    return;
+  }
+  h.forEach(function(e){
+    var card = document.createElement("div");
+    card.className = "panel histcard";
+    var d = new Date(e.date);
+    var dateStr = d.toLocaleString("ru-RU", {day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+    card.innerHTML =
+      '<div class="row"><span>Дата</span><b>'+dateStr+'</b></div>' +
+      '<div class="row"><span>Кругов пройдено</span><b>'+e.roundsCompleted+' из '+e.totalRounds+'</b></div>' +
+      '<div class="row"><span>Время физ. нагрузки</span><b>'+fmtStopwatch(e.totalPhysicalMs)+'</b></div>' +
+      '<div class="row"><span>Когнитивные задачи</span><b>'+e.cognitiveSolved+' из '+e.cognitiveTotal+'</b></div>' +
+      (e.aborted ? '<span class="tag">ПРЕРВАНО</span>' : '');
+    list.appendChild(card);
+  });
+}
+
+$("btnClearHistory").addEventListener("click", function(){
+  if(confirm("Очистить весь архив миссий? Действие необратимо.")){
+    clearHistory();
+    renderHistory();
+  }
+});
+$("btnHomeFromHistory").addEventListener("click", function(){
+  renderHome();
+  showScreen("screen-home");
+});
+
+/* ===================== INIT ===================== */
+
+renderHome();
+showScreen("screen-home");
+
+})();
+</script>
+</body>
+</html>
