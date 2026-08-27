@@ -10,7 +10,7 @@ Dual-Task: физическая нагрузка (калистеника) + ко
 tactical-mind-body/
 ├── www/index.html          ← всё приложение: HTML+CSS+JS в одном файле
 ├── android/                ← нативный Android-проект (Capacitor)
-├── capacitor.config.ts     ← конфигурация Capacitor
+├── capacitor.config.json   ← конфигурация Capacitor
 ├── package.json
 └── .github/workflows/build-apk.yml   ← автосборка APK в облаке
 ```
