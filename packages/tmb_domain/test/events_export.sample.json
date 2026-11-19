@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "kind": "events_export",
+  "sessions": [
+    {
+      "id": "62ed4258-a855-4484-9598-d5cc938f60f0",
+      "startedAt": 1795100000000,
+      "endedAt": 1795101500000,
+      "utcOffsetMin": 180,
+      "location": "HOME",
+      "difficulty": "fighter",
+      "template": "dual_task",
+      "appVersion": "0.1.0+1"
+    }
+  ],
+  "rounds": [
+    {
+      "id": "5004e0ab-d425-48a0-bf87-766cf1c3cc8b",
+      "sessionId": "62ed4258-a855-4484-9598-d5cc938f60f0",
+      "blockIndex": 0,
+      "roundIndex": 0,
+      "durationMs": 214000,
+      "rpe": 2
+    }
+  ],
+  "sets": [
+    {
+      "id": "65602417-d097-441d-8132-a1fe91c4503e",
+      "sessionId": "62ed4258-a855-4484-9598-d5cc938f60f0",
+      "roundId": "5004e0ab-d425-48a0-bf87-766cf1c3cc8b",
+      "setIndex": 0,
+      "exerciseId": "ex.pushup",
+      "unit": "reps",
+      "prescribed": 15,
+      "done": 15,
+      "startedAt": 1795100010000,
+      "endedAt": 1795100050000
+    }
+  ],
+  "attempts": [
+    {
+      "id": "007d3bd5-9f98-44b4-87b1-b704f2514e58",
+      "sessionId": "62ed4258-a855-4484-9598-d5cc938f60f0",
+      "blockIndex": 1,
+      "roundIndex": 0,
+      "taskId": "demo.java.002",
+      "packId": "demo.ru",
+      "packSource": "builtin",
+      "archetype": "choice",
+      "domain": "it.java",
+      "difficulty": 0.3,
+      "seed": 1234567890,
+      "status": "answered",
+      "presentedAt": 1795100220000,
+      "answeredAt": 1795100227400,
+      "latencyMs": 7391,
+      "isCorrect": true,
+      "selfRating": null,
+      "response": "2",
+      "encodedRoundIndex": null,
+      "payloadHash": "0301b322e4db5a224c9262ad495394182698d55b6a82ac005e992529b93a4833"
+    },
+    {
+      "id": "75eed978-f78e-4716-b034-58b94b257d27",
+      "sessionId": "62ed4258-a855-4484-9598-d5cc938f60f0",
+      "blockIndex": 3,
+      "roundIndex": 1,
+      "taskId": "demo.ver.001",
+      "packId": "demo.ru",
+      "packSource": "builtin",
+      "archetype": "verbal",
+      "domain": "cog.speech",
+      "difficulty": 0.45,
+      "seed": 987654321,
+      "status": "answered",
+      "presentedAt": 1795100500000,
+      "answeredAt": 1795100560000,
+      "latencyMs": 60000,
+      "isCorrect": null,
+      "selfRating": 2,
+      "response": null,
+      "encodedRoundIndex": null,
+      "payloadHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+name: tmb_domain
+description: "Чистый Dart-домен Tactical Mind & Body. Импорты Flutter запрещены."
+publish_to: none
+
+environment:
+  sdk: ^3.14.0
+
+resolution: workspace
+
+dependencies:
+  crypto: ^3.0.6
+
+dev_dependencies:
+  test: ^1.25.0
+  lints: ^6.0.0

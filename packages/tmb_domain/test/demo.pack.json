@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "kind": "task_pack",
+  "pack": "demo.ru",
+  "title": "Демонстрационный пак",
+  "locale": "ru",
+  "license": "CC-BY-4.0",
+  "packSource": "builtin",
+  "status": "draft",
+  "levels": [
+    "recruit",
+    "fighter"
+  ],
+  "categories": [
+    {
+      "domain": "it.java",
+      "title": "Java",
+      "description": "Основы языка."
+    },
+    {
+      "domain": "it.net",
+      "title": "Сети"
+    },
+    {
+      "domain": "math.estimation",
+      "title": "Оценка величин"
+    },
+    {
+      "domain": "cog.memory",
+      "title": "Память"
+    },
+    {
+      "domain": "cog.spatial",
+      "title": "Пространство"
+    },
+    {
+      "domain": "cog.attention",
+      "title": "Внимание"
+    },
+    {
+      "domain": "cog.speech",
+      "title": "Речь"
+    }
+  ],
+  "items": [
+    {
+      "id": "demo.java.001",
+      "domain": "it.java",
+      "archetype": "recall",
+      "verifiable": true,
+      "timeSec": 30,
+      "difficulty": 0.2,
+      "prompt": "Каким ключевым словом объявляется константа в Java? Введите слово.",
+      "answer": "final",
+      "accept": [
+        "final"
+      ],
+      "reveal": "final запрещает повторное присваивание."
+    },
+    {
+      "id": "demo.java.002",
+      "domain": "it.java",
+      "archetype": "choice",
+      "verifiable": true,
+      "timeSec": 30,
+      "difficulty": 0.3,
+      "prompt": "Какой из типов Java не является примитивным?",
+      "options": [
+        "int",
+        "boolean",
+        "String",
+        "double"
+      ],
+      "answer": 2
+    },
+    {
+      "id": "demo.net.001",
+      "domain": "it.net",
+      "archetype": "ordering",
+      "verifiable": true,
+      "timeSec": 60,
+      "difficulty": 0.4,
+      "prompt": "Расставьте шаги открытия страницы по HTTPS по порядку.",
+      "items": [
+        "Разрешение имени (DNS)",
+        "Соединение TCP",
+        "Рукопожатие TLS",
+        "Запрос HTTP",
+        "Ответ сервера"
+      ]
+    },
+    {
+      "id": "demo.est.001",
+      "domain": "math.estimation",
+      "archetype": "recall",
+      "verifiable": true,
+      "timeSec": 45,
+      "difficulty": 0.3,
+      "prompt": "Оцените: сколько секунд в сутках? Введите число.",
+      "answer": 86400,
+      "accept": {
+        "min": 80000,
+        "max": 90000
+      },
+      "reveal": "24 × 60 × 60 = 86 400."
+    },
+    {
+      "id": "demo.mem.001",
+      "domain": "cog.memory",
+      "archetype": "delayed_recall",
+      "verifiable": true,
+      "timeSec": 20,
+      "difficulty": 0.35,
+      "prompt": "Запомните три кода. Вопрос будет после следующего круга.",
+      "memorize": "К7 · Р3 · Б9",
+      "question": "Какой код был средним?",
+      "answer": "Р3",
+      "delayRounds": 1,
+      "showSec": 8
+    },
+    {
+      "id": "demo.spa.001",
+      "domain": "cog.spatial",
+      "archetype": "spatial",
+      "verifiable": true,
+      "timeSec": 20,
+      "difficulty": 0.4,
+      "prompt": "Где была буква B? Нажмите на клетку.",
+      "grid": {
+        "rows": 4,
+        "cols": 4
+      },
+      "objects": [
+        {
+          "label": "A",
+          "row": 0,
+          "col": 1
+        },
+        {
+          "label": "B",
+          "row": 2,
+          "col": 3
+        }
+      ],
+      "showSec": 6,
+      "answer": {
+        "row": 2,
+        "col": 3
+      }
+    },
+    {
+      "id": "demo.str.001",
+      "domain": "cog.attention",
+      "archetype": "stream",
+      "verifiable": true,
+      "timeSec": 30,
+      "difficulty": 0.3,
+      "prompt": "Нажимайте каждый раз, когда видите слово КРАСНЫЙ.",
+      "stimuli": [
+        "КРАСНЫЙ",
+        "СИНИЙ",
+        "ЗЕЛЁНЫЙ",
+        "КРАСНЫЙ",
+        "СИНИЙ",
+        "СИНИЙ",
+        "КРАСНЫЙ",
+        "ЖЁЛТЫЙ"
+      ],
+      "targets": [
+        "КРАСНЫЙ"
+      ],
+      "stimulusMs": 900
+    },
+    {
+      "id": "demo.ver.001",
+      "domain": "cog.speech",
+      "archetype": "verbal",
+      "verifiable": false,
+      "timeSec": 60,
+      "difficulty": 0.45,
+      "prompt": "Называйте вслух города без повторов. Не останавливайтесь.",
+      "cues": [
+        {
+          "atSec": [
+            15,
+            25
+          ],
+          "text": "СМЕНА ПРАВИЛА: теперь только города на букву, на которую закончилось предыдущее слово."
+        }
+      ],
+      "selfCheck": [
+        "Заметил смену правила сразу?",
+        "Ни одного повтора?",
+        "Не молчал дольше трёх секунд?"
+      ]
+    }
+  ]
+}

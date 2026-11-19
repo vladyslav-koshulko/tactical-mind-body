@@ -4,3 +4,10 @@ android/.gradle/
 android/build/
 android/local.properties
 *.log
+
+# Локальные переопределения настроек Claude Code (пер-машинные)
+.claude/settings.local.json
+
+# Flutter / Dart
+.dart_tool/
+build/

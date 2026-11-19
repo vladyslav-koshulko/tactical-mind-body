@@ -1,0 +1,89 @@
+name: Flutter
+
+on:
+  push:
+    branches: [ main, master ]
+    # Документация, старый HTML-прототип и корневой Capacitor не влияют на Flutter-код;
+    # их проверяет/собирает build-apk.yml. apps/mobile/android сюда не попадает —
+    # паттерн android/** привязан к корню репозитория.
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - 'www/**'
+      - 'android/**'
+      - 'design/brand/**'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - 'www/**'
+      - 'android/**'
+      - 'design/brand/**'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+# Устаревшие запуски PR отменяем, чтобы не жечь минуты; на main каждый push
+# должен дойти до конца — иначе теряется история того, какой коммит сломал сборку.
+concurrency:
+  group: flutter-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  flutter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # Версия пришпилена: «stable» без номера меняет результат анализа сам по себе.
+      # Dart берётся из комплекта Flutter (3.14.0), отдельно его не ставим.
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.50.0'
+          cache: true
+
+      # Один pub get в корне резолвит весь workspace (packages/* и apps/*).
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      # Форматирование — отдельным шагом, чтобы ревью не засорялось правками стиля.
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      # --fatal-infos: подсказки линтера тоже блокируют, иначе они копятся вечно.
+      - name: Analyze
+        run: flutter analyze --fatal-infos
+
+      # Тесты по пакетам отдельными шагами — в UI Actions сразу видно, какой пакет упал.
+      # tmb_domain — чистый Dart, поэтому dart test: Flutter-тулчейн ему не нужен,
+      # и случайная зависимость от него всплывёт здесь.
+      - name: Test tmb_domain
+        working-directory: packages/tmb_domain
+        run: dart test
+
+      - name: Test tmb_data
+        working-directory: packages/tmb_data
+        run: dart test
+
+      - name: Test tmb_ui
+        working-directory: packages/tmb_ui
+        run: flutter test
+
+      - name: Test apps/mobile
+        working-directory: apps/mobile
+        run: flutter test
+
+      # Встроенные паки в CI проверяются строго: любой error и warning — сбой
+      # (docs/SCHEMAS.md §9, решение 13), иначе опечатки в полях тихо игнорируются.
+      # Валидатор появится позже — до тех пор шаг пропускается, как в invariants.yml.
+      - name: Validate built-in content packs
+        run: |
+          if [ ! -f packages/tmb_domain/bin/validate_packs.dart ]; then
+            echo "::notice::packages/tmb_domain/bin/validate_packs.dart ещё нет — валидация паков пропущена"
+            exit 0
+          fi
+          dart run packages/tmb_domain/bin/validate_packs.dart assets/content

@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "kind": "exercise_pack",
+  "pack": "exercises.base",
+  "title": "Базовые упражнения — дом, без инвентаря",
+  "defaultLocale": "ru",
+  "license": "proprietary",
+  "packSource": "builtin",
+  "status": "draft",
+  "exercises": [
+    {
+      "id": "ex.burpee_pushup",
+      "name": { "ru": "Бёрпи с отжиманием" },
+      "unit": "reps",
+      "muscleGroups": ["full_body", "chest", "triceps"],
+      "inventory": [],
+      "locations": ["HOME"],
+      "legacyId": 1
+    },
+    {
+      "id": "ex.diamond_pushup",
+      "name": { "ru": "Алмазные отжимания" },
+      "unit": "reps",
+      "muscleGroups": ["triceps", "chest", "shoulders"],
+      "inventory": [],
+      "locations": ["HOME"],
+      "legacyId": 2
+    },
+    {
+      "id": "ex.jump_squat",
+      "name": { "ru": "Приседания с выпрыгиванием" },
+      "unit": "reps",
+      "muscleGroups": ["quads", "glutes", "calves"],
+      "inventory": [],
+      "locations": ["HOME"],
+      "legacyId": 3
+    },
+    {
+      "id": "ex.mountain_climber",
+      "name": { "ru": "Скалолаз" },
+      "unit": "reps",
+      "muscleGroups": ["core", "shoulders", "quads"],
+      "inventory": [],
+      "locations": ["HOME"],
+      "legacyId": 4
+    },
+    {
+      "id": "ex.jackknife",
+      "name": { "ru": "Складка (пресс)" },
+      "unit": "reps",
+      "muscleGroups": ["core"],
+      "inventory": [],
+      "locations": ["HOME"],
+      "legacyId": 5
+    },
+    {
+      "id": "ex.pushup",
+      "name": { "ru": "Классические отжимания" },
+      "unit": "reps",
+      "muscleGroups": ["chest", "triceps", "shoulders"],
+      "inventory": [],
+      "locations": ["HOME"],
+      "legacyId": 6
+    },
+    {
+      "id": "ex.jump_lunge_switch",
+      "name": { "ru": "Выпады с прыжком (свитчи)" },
+      "unit": "reps",
+      "muscleGroups": ["quads", "glutes", "hamstrings"],
+      "inventory": [],
+      "locations": ["HOME"],
+      "legacyId": 7
+    },
+    {
+      "id": "ex.situp",
+      "name": { "ru": "Подъём корпуса на пресс" },
+      "unit": "reps",
+      "muscleGroups": ["core"],
+      "inventory": [],
+      "locations": ["HOME"],
+      "legacyId": 8
+    },
+    {
+      "id": "ex.star_jump",
+      "name": { "ru": "Прыжки «звезда»" },
+      "unit": "reps",
+      "muscleGroups": ["full_body", "calves"],
+      "inventory": [],
+      "locations": ["HOME"],
+      "legacyId": 9
+    },
+    {
+      "id": "ex.bench_dip",
+      "name": { "ru": "Обратные отжимания от опоры" },
+      "unit": "reps",
+      "muscleGroups": ["triceps", "shoulders", "chest"],
+      "inventory": [],
+      "locations": ["HOME"],
+      "legacyId": 10
+    },
+    {
+      "id": "ex.pistol_squat",
+      "name": { "ru": "Присед «пистолетик» (поочерёдно)" },
+      "unit": "reps",
+      "muscleGroups": ["quads", "glutes", "core"],
+      "inventory": [],
+      "locations": ["HOME"],
+      "legacyId": 11
+    },
+    {
+      "id": "ex.crunch",
+      "name": { "ru": "Скручивания на пресс" },
+      "unit": "reps",
+      "muscleGroups": ["core"],
+      "inventory": [],
+      "locations": ["HOME"],
+      "legacyId": 12
+    },
+    {
+      "id": "ex.clap_pushup",
+      "name": { "ru": "Отжимания с хлопком" },
+      "unit": "reps",
+      "muscleGroups": ["chest", "triceps", "shoulders"],
+      "inventory": [],
+      "locations": ["HOME"],
+      "legacyId": 13
+    },
+    {
+      "id": "ex.burpee",
+      "name": { "ru": "Бёрпи без отжимания" },
+      "unit": "reps",
+      "muscleGroups": ["full_body", "quads"],
+      "inventory": [],
+      "locations": ["HOME"],
+      "legacyId": 14
+    },
+    {
+      "id": "ex.high_knees",
+      "name": { "ru": "Высокие колени (бег на месте)" },
+      "unit": "reps",
+      "muscleGroups": ["quads", "calves", "core"],
+      "inventory": [],
+      "locations": ["HOME"],
+      "legacyId": 15
+    }
+  ]
+}

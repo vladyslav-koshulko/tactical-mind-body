@@ -99,6 +99,10 @@ class SessionTemplate {
 
 ## 4. Контентные паки — формат вместо кода
 
+> Канонический формат обмена — **JSON** с `schemaVersion` (решение D3 в
+> [ARCHITECTURE §10](ARCHITECTURE.md#10-решения-от-2026-11-19-категории-свой-контент-прогрессия)).
+> YAML ниже — только для читаемости. Рабочий образец — [`uncertainty.pack.json`](../assets/content/ru/uncertainty.pack.json).
+
 ```yaml
 pack: mil.tacmed.ru
 title: Тактическая медицина — база

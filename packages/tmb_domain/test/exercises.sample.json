@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "kind": "exercise_pack",
+  "pack": "exercises.demo",
+  "title": "Демонстрационные упражнения",
+  "defaultLocale": "ru",
+  "license": "CC-BY-4.0",
+  "packSource": "imported",
+  "status": "draft",
+  "exercises": [
+    {
+      "id": "ex.plank",
+      "name": {
+        "ru": "Планка",
+        "uk": "Планка",
+        "en": "Plank"
+      },
+      "unit": "seconds",
+      "muscleGroups": [
+        "core",
+        "shoulders"
+      ],
+      "inventory": [],
+      "locations": [
+        "HOME",
+        "GYM",
+        "OUTDOOR"
+      ],
+      "legacyId": null
+    },
+    {
+      "id": "ex.pullup",
+      "name": {
+        "ru": "Подтягивания"
+      },
+      "unit": "reps",
+      "muscleGroups": [
+        "back",
+        "biceps"
+      ],
+      "inventory": [
+        "pullup_bar"
+      ],
+      "locations": [
+        "GYM",
+        "OUTDOOR"
+      ],
+      "legacyId": null
+    }
+  ]
+}

@@ -2,10 +2,9 @@
 /// https://www.figma.com/design/Qc9XP8kvfDMtPwMLCZABkA
 ///
 /// Источник правды — Figma. Правки вносить там, потом обновлять этот файл.
-/// При создании пакета `tmb_ui` файл переезжает в `packages/tmb_ui/lib/tokens.dart`.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Цвет. Приложение тёмное по замыслу — светлой темы не будет.
 /// Режим `Daylight` (повышенный контраст для яркого солнца) — кандидат на будущее,
@@ -88,55 +87,87 @@ abstract final class TmbFont {
 /// Типографическая шкала. Имена совпадают с текстовыми стилями в Figma.
 abstract final class TmbType {
   static const displayHero = TextStyle(
-    fontFamily: TmbFont.display, fontWeight: FontWeight.w700,
-    fontSize: 32, height: 1.10, letterSpacing: 0.64,
+    fontFamily: TmbFont.display,
+    fontWeight: FontWeight.w700,
+    fontSize: 32,
+    height: 1.10,
+    letterSpacing: 0.64,
   );
   static const displayLg = TextStyle(
-    fontFamily: TmbFont.display, fontWeight: FontWeight.w600,
-    fontSize: 24, height: 1.15, letterSpacing: 0.48,
+    fontFamily: TmbFont.display,
+    fontWeight: FontWeight.w600,
+    fontSize: 24,
+    height: 1.15,
+    letterSpacing: 0.48,
   );
   static const displayMd = TextStyle(
-    fontFamily: TmbFont.display, fontWeight: FontWeight.w500,
-    fontSize: 18, height: 1.20, letterSpacing: 0.54,
+    fontFamily: TmbFont.display,
+    fontWeight: FontWeight.w500,
+    fontSize: 18,
+    height: 1.20,
+    letterSpacing: 0.54,
   );
 
   /// Главный таймер. Должен читаться с нескольких метров.
   static const dataTimer = TextStyle(
-    fontFamily: TmbFont.mono, fontWeight: FontWeight.w700,
-    fontSize: 56, height: 1.00, letterSpacing: 1.12,
+    fontFamily: TmbFont.mono,
+    fontWeight: FontWeight.w700,
+    fontSize: 56,
+    height: 1.00,
+    letterSpacing: 1.12,
   );
   static const dataMetric = TextStyle(
-    fontFamily: TmbFont.mono, fontWeight: FontWeight.w700,
-    fontSize: 28, height: 1.10,
+    fontFamily: TmbFont.mono,
+    fontWeight: FontWeight.w700,
+    fontSize: 28,
+    height: 1.10,
   );
   static const dataMono = TextStyle(
-    fontFamily: TmbFont.mono, fontWeight: FontWeight.w500,
-    fontSize: 14, height: 1.40, letterSpacing: 0.56,
+    fontFamily: TmbFont.mono,
+    fontWeight: FontWeight.w500,
+    fontSize: 14,
+    height: 1.40,
+    letterSpacing: 0.56,
   );
 
   static const bodyLg = TextStyle(
-    fontFamily: TmbFont.mono, fontSize: 16, height: 1.50,
+    fontFamily: TmbFont.mono,
+    fontSize: 16,
+    height: 1.50,
   );
   static const bodyMd = TextStyle(
-    fontFamily: TmbFont.mono, fontSize: 14, height: 1.50,
+    fontFamily: TmbFont.mono,
+    fontSize: 14,
+    height: 1.50,
   );
   static const bodySm = TextStyle(
-    fontFamily: TmbFont.mono, fontSize: 12, height: 1.45,
+    fontFamily: TmbFont.mono,
+    fontSize: 12,
+    height: 1.45,
   );
 
   // Метки — всегда uppercase, широкий трекинг. Регистр задавать в UI
   // (`text.toUpperCase()`), а не хранить в строках локализации.
   static const labelLg = TextStyle(
-    fontFamily: TmbFont.display, fontWeight: FontWeight.w600,
-    fontSize: 16, height: 1.0, letterSpacing: 1.28,
+    fontFamily: TmbFont.display,
+    fontWeight: FontWeight.w600,
+    fontSize: 16,
+    height: 1.0,
+    letterSpacing: 1.28,
   );
   static const labelMd = TextStyle(
-    fontFamily: TmbFont.display, fontWeight: FontWeight.w500,
-    fontSize: 13, height: 1.0, letterSpacing: 1.30,
+    fontFamily: TmbFont.display,
+    fontWeight: FontWeight.w500,
+    fontSize: 13,
+    height: 1.0,
+    letterSpacing: 1.30,
   );
   static const labelSm = TextStyle(
-    fontFamily: TmbFont.display, fontWeight: FontWeight.w500,
-    fontSize: 11, height: 1.0, letterSpacing: 1.32,
+    fontFamily: TmbFont.display,
+    fontWeight: FontWeight.w500,
+    fontSize: 11,
+    height: 1.0,
+    letterSpacing: 1.32,
   );
 }
 

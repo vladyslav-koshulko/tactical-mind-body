@@ -1,0 +1,58 @@
+name: Architecture invariants
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch: {}
+
+# Проверяет решения из docs/ARCHITECTURE.md, которые дорого чинить задним числом.
+# Пока Flutter-скелета нет, шаги молча пропускаются — workflow зелёный и ничего
+# не блокирует, но начинает работать в ту же секунду, когда появятся packages/.
+jobs:
+  invariants:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: tmb_domain must not import Flutter
+        run: |
+          if [ ! -d packages/tmb_domain ]; then
+            echo "::notice::packages/tmb_domain ещё не создан — проверка пропущена"
+            exit 0
+          fi
+          fail=0
+          for pkg in packages/tmb_domain packages/tmb_data; do
+            [ -d "$pkg" ] || continue
+            # Flutter может прийти не только как package:flutter, но и через
+            # material_ui, dart:ui, dart:html; dart:io в lib/ ломает веб и часы.
+            # bin/ — исполняемые утилиты, там dart:io допустим.
+            if grep -rnE "package:(flutter|material_ui|flutter_[a-z_]+)/|dart:(ui|html)" "$pkg/lib" "$pkg/test" --include='*.dart'; then
+              echo "::error::$pkg зависит от Flutter/UI. Это ломает порт на Wear OS / watchOS (ARCHITECTURE.md §2)."
+              fail=1
+            fi
+            if grep -rn "dart:io" "$pkg/lib" --include='*.dart'; then
+              echo "::error::$pkg/lib использует dart:io — домен и данные должны оставаться переносимыми."
+              fail=1
+            fi
+            # Зависимость от Flutter SDK в pubspec — тот же нарушитель, но без импортов.
+            if grep -nE "^\s*(flutter|material_ui|flutter_[a-z_]+):" "$pkg/pubspec.yaml"; then
+              echo "::error::$pkg/pubspec.yaml объявляет Flutter-зависимость."
+              fail=1
+            fi
+          done
+          [ "$fail" -eq 0 ] || exit 1
+          echo "tmb_domain и tmb_data чисты"
+
+      - name: No per-topic task classes
+        run: |
+          if [ ! -d packages ]; then
+            echo "::notice::packages/ ещё не создан — проверка пропущена"
+            exit 0
+          fi
+          # Тема — не тип задачи. Механик семь, тем бесконечно много (EXTENSIBILITY.md §1).
+          if grep -rnE 'class +(Java|Rust|Tacmed|Latin|Chess|Cyber|Med)[A-Za-z]*Task\b' packages/ --include='*.dart'; then
+            echo "::error::Найден класс задачи под конкретную тему. Домен должен быть данными поверх семи архетипов, а не кодом."
+            exit 1
+          fi
+          echo "Тематических классов задач нет"

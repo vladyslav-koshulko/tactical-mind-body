@@ -2,8 +2,7 @@
 
 **Файл в Figma:** https://www.figma.com/design/Qc9XP8kvfDMtPwMLCZABkA
 
-Токены в коде: [`design/tokens.dart`](../design/tokens.dart) — переезжает в
-`packages/tmb_ui/lib/` вместе с созданием Flutter-скелета.
+Токены в коде: [`packages/tmb_ui/lib/tokens.dart`](../packages/tmb_ui/lib/tokens.dart).
 
 ## Структура файла
 
@@ -79,7 +78,7 @@
 
 ## Что осталось по дизайну
 
-- [ ] Логотип и иконка приложения (гексагон, мозг в контуре гири)
+- [x] Логотип и иконка приложения — расколотый гексагон, см. [design/brand/](../design/brand/README.md). Идея «гиря с мозгом» отклонена: читалась как навесной замок (архив — `design/brand/archive/`)
 - [ ] Иконки локаций — сейчас типографические индексы `01/02/03`
 - [ ] `Button` — вариант `Phase=Cognitive`; сейчас оранжевая кнопка на экране
       паузы сделана переопределением заливки инстанса

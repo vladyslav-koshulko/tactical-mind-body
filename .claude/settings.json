@@ -1,0 +1,47 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git blame:*)",
+      "Bash(git ls-files:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh release list:*)",
+      "Bash(gh release view:*)",
+      "Bash(gh workflow list:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(flutter test:*)",
+      "Bash(flutter pub get:*)",
+      "Bash(flutter pub outdated:*)",
+      "Bash(flutter doctor:*)",
+      "Bash(flutter --version)",
+      "Bash(dart analyze:*)",
+      "Bash(dart format:*)",
+      "Bash(dart test:*)",
+      "Bash(dart pub get:*)",
+      "Bash(dart --version)",
+      "Bash(npm install)",
+      "Bash(npx cap sync:*)",
+      "Bash(rg:*)",
+      "Bash(wc:*)",
+      "Bash(find:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/dart-check.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

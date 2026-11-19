@@ -1,0 +1,5 @@
+# Каталог содержит только сгенерированный `flutter gen-l10n` код (в нём устаревший
+# GlobalMaterialLocalizations из flutter_localizations) — его не анализируем.
+analyzer:
+  exclude:
+    - app_localizations*.dart

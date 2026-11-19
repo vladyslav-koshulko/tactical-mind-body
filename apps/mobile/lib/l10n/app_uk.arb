@@ -1,0 +1,14 @@
+{
+  "@@locale": "uk",
+  "appName": "Tactical Mind & Body",
+  "dashboardTitle": "Дашборд",
+  "locationHome": "Дім",
+  "locationGym": "Зал",
+  "locationStreet": "Вулиця",
+  "locationSelected": "Обрано",
+  "startOperation": "Розпочати операцію",
+  "lastOperationTitle": "Остання операція",
+  "lastOperationEmpty": "Поки немає даних",
+  "phasePhysical": "Фізична фаза",
+  "phaseCognitive": "Когнітивна фаза"
+}

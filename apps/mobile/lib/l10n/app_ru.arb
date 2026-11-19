@@ -1,0 +1,16 @@
+{
+  "@@locale": "ru",
+  "appName": "Tactical Mind & Body",
+  "@appName": { "description": "Название приложения (бренд, не переводится)" },
+  "dashboardTitle": "Дашборд",
+  "locationHome": "Дом",
+  "locationGym": "Зал",
+  "locationStreet": "Улица",
+  "locationSelected": "Выбрано",
+  "@locationSelected": { "description": "Метка выбранной плитки локации (дублирует рамку нецветовым каналом)" },
+  "startOperation": "Начать операцию",
+  "lastOperationTitle": "Последняя операция",
+  "lastOperationEmpty": "Пока нет данных",
+  "phasePhysical": "Физическая фаза",
+  "phaseCognitive": "Когнитивная фаза"
+}

@@ -1,0 +1,15 @@
+name: tmb_data
+description: "Слой данных Tactical Mind & Body (без Flutter)."
+publish_to: none
+
+environment:
+  sdk: ^3.14.0
+
+resolution: workspace
+
+dependencies:
+  tmb_domain: any
+
+dev_dependencies:
+  test: ^1.25.0
+  lints: ^6.0.0

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Имя бренда, не переводится: одинаково для ru и uk. -->
+    <string name="app_name">Tactical Mind &amp; Body</string>
+</resources>

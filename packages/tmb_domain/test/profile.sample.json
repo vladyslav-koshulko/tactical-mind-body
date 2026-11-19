@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "disabledCategories": [
+    "cog.uncertainty.premortem",
+    "it"
+  ],
+  "defaultTargets": {
+    "reps": {
+      "min": 15,
+      "max": 15
+    },
+    "seconds": {
+      "min": 30,
+      "max": 30
+    }
+  },
+  "exerciseTargets": [
+    {
+      "exerciseId": "ex.pistol_squat",
+      "min": 5,
+      "max": 8,
+      "lockedByUser": true
+    }
+  ],
+  "progression": {
+    "enabled": true
+  }
+}

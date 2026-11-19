@@ -1,0 +1,12 @@
+name: tmb_workspace
+description: "Монорепозиторий Tactical Mind & Body (Dart pub workspace)."
+publish_to: none
+
+environment:
+  sdk: ^3.14.0
+
+workspace:
+  - packages/tmb_domain
+  - packages/tmb_data
+  - packages/tmb_ui
+  - apps/mobile
