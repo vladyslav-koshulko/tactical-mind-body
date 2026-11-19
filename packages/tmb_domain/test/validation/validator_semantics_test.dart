@@ -318,6 +318,26 @@ void main() {
       expect(check(doc, _tp).has(ValidationCode.packNumberRange), isTrue);
     });
 
+    test(
+      'seed события доходит до 2^53−1, выше — EVT_RANGE (не PACK_NUMBER_RANGE)',
+      () {
+        Json withSeed(int seed) {
+          final d = loadSample(DocumentKind.eventsExport);
+          record(d, 'attempts', 0)['seed'] = seed;
+          return d;
+        }
+
+        final ok = check(withSeed(9007199254740991), DocumentKind.eventsExport);
+        expect(ok.errorCount, 0, reason: '$ok');
+        final bad = check(
+          withSeed(9007199254740992),
+          DocumentKind.eventsExport,
+        );
+        expect(bad.has(ValidationCode.evtRange), isTrue);
+        expect(bad.has(ValidationCode.packNumberRange), isFalse);
+      },
+    );
+
     test('null в поле, где он не разрешён, — PACK_BAD_TYPE', () {
       final doc = loadSample(_tp);
       task(doc, recallTask)['reveal'] = null;

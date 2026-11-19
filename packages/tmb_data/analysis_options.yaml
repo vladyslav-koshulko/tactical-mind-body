@@ -1,0 +1,13 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  exclude:
+    # Генерируется drift_dev / build_runner и коммитится (CI build_runner не
+    # запускает); анализировать сгенерированный код смысла нет.
+    - "**/*.g.dart"
+    - lib/src/database/schema_versions.dart
+    - test/generated_migrations/**

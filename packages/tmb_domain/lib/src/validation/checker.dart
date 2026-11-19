@@ -409,7 +409,10 @@ final class Checker {
     required ValidationCode code,
     required String what,
   }) {
-    final n = number(v, path);
+    // Целое проверяется только по своему диапазону: лимит `|x| < 1e15` из
+    // `number()` нужен хешу дробных чисел пака, а `seed` законно доходит до
+    // 2^53−1 (SCHEMAS §3.4) — иначе большой сид даёт ложный PACK_NUMBER_RANGE.
+    final n = v is int ? v : number(v, path);
     if (n == null) return null;
     if (n is! int || n < min || n > max) {
       add(code, path, '$what: ожидалось целое число от $min до $max.');

@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 1,
+  "kind": "task_pack",
+  "locale": "ru",
+  "license": "proprietary",
+  "packSource": "builtin",
+  "status": "draft",
+  "levels": [
+    "recruit",
+    "fighter",
+    "operator",
+    "spetsnaz"
+  ],
+  "pack": "cog.verbal.ru",
+  "title": "Вербальные задачи — база",
+  "categories": [
+    {
+      "domain": "cog.verbal.description",
+      "title": "Описание вслух",
+      "description": "Связная речь по заданному ограничению."
+    },
+    {
+      "domain": "cog.verbal.enumeration",
+      "title": "Перечисление",
+      "description": "Назвать N элементов без повторов и пауз."
+    },
+    {
+      "domain": "cog.verbal.sequence",
+      "title": "Счёт и обратный порядок",
+      "description": "Ряд, который нужно вести в непривычном порядке."
+    },
+    {
+      "domain": "cog.verbal.articulation",
+      "title": "Артикуляция",
+      "description": "Скороговорки без ошибок."
+    }
+  ],
+  "items": [
+    {
+      "id": "verb.description.001",
+      "domain": "cog.verbal.description",
+      "archetype": "verbal",
+      "verifiable": false,
+      "timeSec": 120,
+      "difficulty": 0.75,
+      "prompt": "Опишите вслух комнату 2 минуты, не используя ни одного слова с буквой «О».",
+      "selfCheck": [
+        "Ни одного слова с буквой «О»?",
+        "Говорил непрерывно, без пауз дольше 3 секунд?",
+        "Описал и предметы, и их расположение?"
+      ]
+    },
+    {
+      "id": "verb.enumeration.001",
+      "domain": "cog.verbal.enumeration",
+      "archetype": "verbal",
+      "verifiable": false,
+      "timeSec": 60,
+      "difficulty": 0.4,
+      "prompt": "Назовите вслух цепочку из 20 несвязанных между собой слов без пауз дольше 2 секунд.",
+      "selfCheck": [
+        "Назвал все 20 слов?",
+        "Слова действительно не связаны друг с другом по смыслу?",
+        "Ни разу не молчал дольше 2 секунд?"
+      ]
+    },
+    {
+      "id": "verb.sequence.001",
+      "domain": "cog.verbal.sequence",
+      "archetype": "verbal",
+      "verifiable": false,
+      "timeSec": 45,
+      "difficulty": 0.45,
+      "prompt": "Произнесите алфавит в обратном порядке — от «Я» до «А».",
+      "selfCheck": [
+        "Дошёл до «А», не пропустив ни одной буквы?",
+        "Ни разу не сбился на прямой порядок?",
+        "Уложился в отведённое время?"
+      ]
+    },
+    {
+      "id": "verb.enumeration.002",
+      "domain": "cog.verbal.enumeration",
+      "archetype": "verbal",
+      "verifiable": false,
+      "timeSec": 60,
+      "difficulty": 0.5,
+      "prompt": "Назовите 15 стран мира на разные буквы, без повторов.",
+      "selfCheck": [
+        "Назвал все 15 стран?",
+        "Каждая страна на свою букву, без повторных букв?",
+        "Ни одной страны не повторил?"
+      ]
+    },
+    {
+      "id": "verb.sequence.002",
+      "domain": "cog.verbal.sequence",
+      "archetype": "verbal",
+      "verifiable": false,
+      "timeSec": 60,
+      "difficulty": 0.4,
+      "prompt": "Считайте вслух от 100 до 1 через каждые 3 числа: 100, 97, 94…",
+      "selfCheck": [
+        "Дошёл до единицы?",
+        "Ни одного неверного числа в ряду?",
+        "Не останавливался дольше 3 секунд?"
+      ]
+    },
+    {
+      "id": "verb.enumeration.003",
+      "domain": "cog.verbal.enumeration",
+      "archetype": "verbal",
+      "verifiable": false,
+      "timeSec": 60,
+      "difficulty": 0.5,
+      "prompt": "Назовите 10 военных терминов, каждый на новую букву алфавита.",
+      "selfCheck": [
+        "Назвал все 10 терминов?",
+        "Каждый термин на новую букву, без повторов?",
+        "Все названные слова — действительно военные термины?"
+      ]
+    },
+    {
+      "id": "verb.description.002",
+      "domain": "cog.verbal.description",
+      "archetype": "verbal",
+      "verifiable": false,
+      "timeSec": 90,
+      "difficulty": 0.45,
+      "prompt": "Опишите маршрут от дома до ближайшего магазина, называя только ориентиры, без цифр.",
+      "selfCheck": [
+        "Ни одной цифры и числительного в описании?",
+        "По описанию маршрут можно пройти, не зная местности?",
+        "Ориентиры шли в правильном порядке?"
+      ]
+    },
+    {
+      "id": "verb.articulation.001",
+      "domain": "cog.verbal.articulation",
+      "archetype": "verbal",
+      "verifiable": false,
+      "timeSec": 30,
+      "difficulty": 0.35,
+      "prompt": "Произнесите скороговорку «Карл у Клары украл кораллы» 5 раз подряд без ошибок.",
+      "selfCheck": [
+        "Все 5 повторов подряд, без сбоев?",
+        "Ни разу не запнулся и не переставил звуки?",
+        "Последний повтор не медленнее первого?"
+      ]
+    },
+    {
+      "id": "verb.enumeration.004",
+      "domain": "cog.verbal.enumeration",
+      "archetype": "verbal",
+      "verifiable": false,
+      "timeSec": 45,
+      "difficulty": 0.3,
+      "prompt": "Назовите 12 позывных, которые вы бы использовали в рейде.",
+      "selfCheck": [
+        "Назвал все 12 позывных?",
+        "Позывные короткие и не похожие друг на друга по звучанию?",
+        "Ни одного позывного не повторил?"
+      ]
+    },
+    {
+      "id": "verb.enumeration.005",
+      "domain": "cog.verbal.enumeration",
+      "archetype": "verbal",
+      "verifiable": false,
+      "timeSec": 60,
+      "difficulty": 0.35,
+      "prompt": "Перечислите 20 предметов тактического снаряжения без повторов.",
+      "selfCheck": [
+        "Назвал все 20 предметов?",
+        "Ни одного предмета не повторил?",
+        "Ни разу не молчал дольше 3 секунд?"
+      ]
+    }
+  ]
+}

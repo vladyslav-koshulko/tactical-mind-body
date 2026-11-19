@@ -23,6 +23,11 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # По умолчанию экшен ставит пакет `tools`, которого в репозитории SDK
+          # больше нет, и шаг падает (сборка #44548262520). Нужные платформы
+          # Gradle докачает сам, лицензии экшен принимает.
+          packages: ''
 
       - name: Set up Node
         uses: actions/setup-node@v4

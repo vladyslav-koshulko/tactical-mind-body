@@ -33,6 +33,7 @@ export 'src/determinism/canonical_json.dart';
 export 'src/determinism/cue_moments.dart';
 export 'src/determinism/mulberry32.dart';
 export 'src/determinism/payload_hash.dart';
+export 'src/engine/engine.dart';
 export 'src/events/attempt_status.dart';
 export 'src/events/events_export.dart';
 export 'src/events/exercise_set.dart';

@@ -8,8 +8,12 @@ environment:
 resolution: workspace
 
 dependencies:
+  drift: ^2.35.4
   tmb_domain: any
 
 dev_dependencies:
   test: ^1.25.0
   lints: ^6.0.0
+  drift_dev: ^2.35.3
+  build_runner: ^2.17.1
+  sqlite3: ^3.9.1
