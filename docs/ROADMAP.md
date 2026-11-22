@@ -44,8 +44,8 @@
 - [x] Спецификация задач на неопределённость и стартовый пак из 17 задач — [UNCERTAINTY.md](UNCERTAINTY.md)
 - [x] **Схема контента v1** и **схема упражнения v1** — [SCHEMAS.md](SCHEMAS.md): 75 правил валидации, 27 решений; валидатор и CLI `validate_packs` в `tmb_domain`
 - [x] **Схема событий**: `ExerciseSet` и расширенный `TaskAttempt` — модели в `tmb_domain`, `payloadHash` и ГПСЧ сверены с независимыми эталонами
-- [x] Логотип и иконка: основная метка — расколотый гексагон ([design/brand/](../design/brand/README.md)); комплект SVG, PNG-экспорт и адаптивная иконка подключены в `apps/mobile/android`. **Не проверено на устройстве** (сборки APK Flutter-приложения пока нет)
-- [x] Скелет Flutter: workspace `tmb_domain` / `tmb_data` / `tmb_ui` / `apps/mobile`; CI `flutter.yml` написан, **ещё не запускался на GitHub**
+- [x] Логотип и иконка: основная метка — расколотый гексагон ([design/brand/](../design/brand/README.md)); комплект SVG, PNG-экспорт и адаптивная иконка подключены в `apps/mobile/android`. Проверено на эмуляторе Pixel 5 (Android 35): адаптивная иконка в лаунчере отображается верно
+- [x] Скелет Flutter: workspace `tmb_domain` / `tmb_data` / `tmb_ui` / `apps/mobile`; CI `flutter.yml`, `flutter-apk.yml` и `invariants.yml` зелёные на GitHub (2026-11-22); APK Flutter-приложения публикуется в prerelease `flutter-latest`
 - [x] Шрифты Oswald и JetBrains Mono бандлятся в `apps/mobile/assets/fonts/` (OFL, кириллица и `і ї є ґ` проверены, ось веса работает); тест `fonts_test.dart` ловит откат на системный фолбэк. Лицензии OFL лежат рядом; показ в «О приложении» — позже
 
 **Готово, когда:** макеты собраны из компонентов на токенах (не «нарисованы
