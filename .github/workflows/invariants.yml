@@ -27,7 +27,8 @@ jobs:
             # Flutter может прийти не только как package:flutter, но и через
             # material_ui, dart:ui, dart:html; dart:io в lib/ ломает веб и часы.
             # bin/ — исполняемые утилиты, там dart:io допустим.
-            if grep -rnE "package:(flutter|material_ui|flutter_[a-z_]+)/|dart:(ui|html)" "$pkg/lib" "$pkg/test" --include='*.dart'; then
+  # purity_test.dart сам содержит эти строки в регулярке — он и есть проверка.
+            if grep -rnE "package:(flutter|material_ui|flutter_[a-z_]+)/|dart:(ui|html)" "$pkg/lib" "$pkg/test" --include='*.dart' --exclude=purity_test.dart; then
               echo "::error::$pkg зависит от Flutter/UI. Это ломает порт на Wear OS / watchOS (ARCHITECTURE.md §2)."
               fail=1
             fi
