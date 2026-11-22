@@ -82,12 +82,24 @@ void main() {
         expect(a.roundIndex, 0);
         expect(a.packSource, PackSource.builtin);
 
-        // Круг 2: баннер итога задачи, карточка оценки прошлого круга.
-        expect(_phaseGlyph(TmbPhase.physical), findsWidgets);
+        // Задача кончилась на 7-й секунде из 180: окно держится до срока
+        // (ARCHITECTURE D15) — остаток паузы, итог задачи, кнопка заблокирована.
+        expect(find.text(l10n.sessionHoldTitle.toUpperCase()), findsOneWidget);
+        expect(_phaseGlyph(TmbPhase.cognitive), findsWidgets);
+        expect(_phaseGlyph(TmbPhase.physical), findsNothing);
         expect(
           find.text(l10n.sessionOutcomeCorrect.toUpperCase()),
           findsOneWidget,
         );
+        expect(find.text('02:53'), findsWidgets);
+        await env.advance(172000);
+        expect(find.text(l10n.sessionHoldTitle.toUpperCase()), findsOneWidget);
+        expect(find.text(l10n.sessionRatingTitle.toUpperCase()), findsNothing);
+        await env.advance(1000);
+
+        // Круг 2: карточка оценки прошлого круга; итог задачи уже был виден.
+        expect(find.text(l10n.sessionHoldTitle.toUpperCase()), findsNothing);
+        expect(_phaseGlyph(TmbPhase.physical), findsWidgets);
         expect(
           find.text(l10n.sessionRatingTitle.toUpperCase()),
           findsOneWidget,
@@ -141,7 +153,10 @@ void main() {
           find.text(l10n.sessionSummaryStatusCompleted.toUpperCase()),
           findsOneWidget,
         );
-        expect(find.text('00:15'), findsOneWidget); // длительность
+        expect(
+          find.text('03:08'),
+          findsOneWidget,
+        ); // длительность вместе с окном
         expect(find.text(l10n.sessionSummaryOutOf(4, 4)), findsOneWidget);
         expect(find.text(l10n.sessionSummaryFactPlan(60, 60)), findsOneWidget);
         expect(
@@ -286,6 +301,12 @@ void main() {
       await env.advance(3000);
       await env.tapDigits('85');
       await env.tapText(l10n.sessionAnswerSubmit);
+      // Единственное окно закрыто досрочно: итоги — только по сроку.
+      expect(find.text(l10n.sessionHoldTitle.toUpperCase()), findsOneWidget);
+      expect(find.byType(SessionSummaryScreen), findsNothing);
+      await env.advance(176000);
+      expect(find.byType(SessionSummaryScreen), findsNothing);
+      await env.advance(1000);
       await env.settle(8);
       expect(find.byType(SessionSummaryScreen), findsOneWidget);
       expect(find.text(l10n.sessionSummaryOutOf(0, 0)), findsNothing);
@@ -332,6 +353,15 @@ void main() {
       expect(bundle.rounds, hasLength(1));
       expect(bundle.rounds.single.rpe, isNull);
       expect(env.wakelock.enabled, isFalse);
+
+      // Прерванную сессию `finishSession` не закрывает, поэтому сводку для
+      // виджета пишет контроллер (в фоне — даём ей дойти).
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 200)),
+      );
+      final summary = (await tester.runAsync(env.summaryStore.read))!;
+      expect(summary.sessionId, id);
+      expect(summary.status, SessionSummaryStatus.aborted);
     });
 
     testWidgets('системное «назад» спрашивает подтверждение', (tester) async {
@@ -385,7 +415,9 @@ void main() {
         find.text(l10n.sessionOutcomeReveal('47 + 38 = 85.')),
         findsOneWidget,
       );
-      expect(_phaseGlyph(TmbPhase.physical), findsWidgets);
+      // Задача истекла, окно — нет: держим паузу, итог виден в ней.
+      expect(find.text(l10n.sessionHoldTitle.toUpperCase()), findsOneWidget);
+      expect(_phaseGlyph(TmbPhase.cognitive), findsWidgets);
 
       final a = (await tester.runAsync(() => env.sessions.attemptsOf(id)))!
           .single;
@@ -395,8 +427,10 @@ void main() {
       expect(a.response, isNull);
       expect(a.payloadHash, matches(_hex64));
 
-      // Баннер не висит вечно.
-      await env.advance(5000);
+      // Срок окна вышел — круг 2, а итог, уже показанный в паузе, не
+      // повторяется.
+      await env.advance(159000);
+      expect(_phaseGlyph(TmbPhase.physical), findsWidgets);
       expect(find.text(l10n.sessionOutcomeTimeout.toUpperCase()), findsNothing);
     });
 
@@ -538,6 +572,9 @@ void main() {
         expect(find.text('Пост номер три'), findsOneWidget);
         expect(find.byType(TmbNumericKeypad), findsNothing);
         await env.tapText(l10n.sessionStudyDone);
+        // Единственная задача окна — запоминание: остаток паузы держится.
+        expect(find.text(l10n.sessionHoldTitle.toUpperCase()), findsOneWidget);
+        await env.advance(180000);
         // Запоминание попытки не пишет.
         final id = (await tester.runAsync(env.sessions.listSessions))!
             .single
@@ -652,7 +689,9 @@ void main() {
     expect(env.haptics, isEmpty); // старт — не смена
     await env.completeRound();
     expect(env.haptics, hasLength(1)); // физика → пауза
-    await env.advance(21000);
+    await env.advance(21000); // задача истекла, окно держится — без вибро
+    expect(env.haptics, hasLength(1));
+    await env.advance(159000);
     expect(env.haptics, hasLength(2)); // пауза → физика
     expect(env.haptics.toSet(), {'HapticFeedbackType.heavyImpact'});
   });

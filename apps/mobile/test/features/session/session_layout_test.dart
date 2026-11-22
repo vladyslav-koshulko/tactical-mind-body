@@ -49,9 +49,8 @@ void main() {
     testWidgets('физическая фаза: окно оценки круга открыто', (tester) async {
       final env = await _pump(tester, [recallNumeric]);
       await env.completeRound();
-      await env.advance(
-        21000,
-      ); // таймаут → круг 2 с карточкой оценки и баннером
+      await env.advance(21000); // таймаут → окно держится до срока
+      await env.advance(159000); // срок → круг 2 с карточкой оценки
       expect(find.text(l10n.sessionRatingTitle.toUpperCase()), findsOneWidget);
       _noOverflow(tester);
       _tapTargetsOk(tester);

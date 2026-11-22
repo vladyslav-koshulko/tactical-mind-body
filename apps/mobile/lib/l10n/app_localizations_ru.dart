@@ -664,6 +664,29 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sessionToSummary => 'К итогам';
 
   @override
+  String get sessionPausedTitle => 'Таймер остановлен';
+
+  @override
+  String get sessionPausedBody =>
+      'Время на паузе не засчитывается. Задача скрыта и ждёт вас: нажмите «Продолжить», когда будете готовы.';
+
+  @override
+  String get sessionResume => 'Продолжить';
+
+  @override
+  String get sessionPausedSemantic => 'Сессия на паузе, таймер остановлен';
+
+  @override
+  String get sessionHoldTitle => 'Пауза продолжается';
+
+  @override
+  String get sessionHoldBody =>
+      'Задачи окна выполнены. Остаток паузы — на восстановление: следующий этап начнётся, когда выйдет время.';
+
+  @override
+  String get sessionHoldNext => 'Следующий этап';
+
+  @override
   String get sessionSummaryTitle => 'Итоги операции';
 
   @override

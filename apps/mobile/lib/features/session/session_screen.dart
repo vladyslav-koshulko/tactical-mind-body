@@ -50,8 +50,11 @@ class _RunningView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final engine = state.engine;
+    final hold = state.hold;
     final Widget view;
-    if (state.awaitingFinish) {
+    if (hold != null) {
+      view = _HoldView(state: state, hold: hold, controller: controller);
+    } else if (state.awaitingFinish) {
       view = _FinalView(state: state, controller: controller);
     } else {
       view = switch (engine.phase) {
@@ -66,15 +69,33 @@ class _RunningView extends StatelessWidget {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
-        if (state.awaitingFinish) {
+        if (state.awaitingFinish && hold == null) {
           await controller.finish();
         } else if (await confirmEvacuation(context) && context.mounted) {
           await controller.evacuate();
         }
       },
-      child: KeyedSubtree(
-        key: ValueKey('block-${engine.blockIndex}-${state.awaitingFinish}'),
-        child: view,
+      // Заглушка паузы ложится поверх, а не вместо: введённые цифры и выбор
+      // в задаче переживают паузу. Под заглушкой вид скрыт (`Offstage`): ни
+      // касаний, ни скринридера, ни тикеров — и условие задачи не видно.
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Offstage(
+            offstage: state.isPaused,
+            child: TickerMode(
+              enabled: !state.isPaused,
+              child: KeyedSubtree(
+                key: ValueKey(
+                  'block-${engine.blockIndex}-${state.awaitingFinish}-'
+                  '${hold != null}',
+                ),
+                child: view,
+              ),
+            ),
+          ),
+          if (state.isPaused) _PausedView(state: state, controller: controller),
+        ],
       ),
     );
   }
@@ -378,6 +399,135 @@ class _FinalView extends StatelessWidget {
         label: l10n.sessionToSummary,
         onPressed: controller.finish,
         expand: true,
+      ),
+    );
+  }
+}
+
+// --- пауза приложения ---------------------------------------------------------
+
+/// Заглушка, пока приложение было свёрнуто: время остановлено, задача скрыта.
+/// Фаза остаётся в шапке (форма значка и подпись), цвет — тот же, что у фазы.
+class _PausedView extends StatelessWidget {
+  const _PausedView({required this.state, required this.controller});
+
+  final SessionRunning state;
+  final SessionController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final engine = state.engine;
+    final (
+      TmbPhase phase,
+      String phaseLabel,
+    ) = state.hold != null || engine.phase == Phase.cognitive
+        ? (TmbPhase.cognitive, l10n.phaseCognitive)
+        : engine.phase == Phase.rest
+        ? (TmbPhase.physical, l10n.sessionRestPhase)
+        : (TmbPhase.physical, l10n.phasePhysical);
+    return TmbPhaseScaffold(
+      phase: phase,
+      phaseLabel: phaseLabel,
+      title: l10n.sessionPausedTitle,
+      body: Center(
+        child: SingleChildScrollView(
+          child: Semantics(
+            liveRegion: true,
+            label: l10n.sessionPausedSemantic,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.pause_circle_outline, size: 96, color: phase.accent),
+                const SizedBox(height: TmbSpace.x4),
+                Text(
+                  l10n.sessionPausedBody,
+                  textAlign: TextAlign.center,
+                  style: TmbType.bodyMd.copyWith(color: TmbColor.textPrimary),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      bottom: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TmbButton(
+            label: l10n.sessionResume,
+            onPressed: controller.resume,
+            expand: true,
+          ),
+          const SizedBox(height: TmbSpace.x2),
+          EvacuateButton(controller: controller),
+        ],
+      ),
+    );
+  }
+}
+
+// --- когнитивное окно держится до срока -------------------------------------------
+
+/// Задачи окна кончились, срок — нет (ARCHITECTURE D15): остаток паузы идёт
+/// на восстановление. Кнопка следующего этапа заблокирована до конца паузы
+/// (DESIGN.md, экран 03); сам этап стартует по таймеру.
+class _HoldView extends StatelessWidget {
+  const _HoldView({
+    required this.state,
+    required this.hold,
+    required this.controller,
+  });
+
+  final SessionRunning state;
+  final SessionHold hold;
+  final SessionController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final timeText = formatMmSs(hold.remainingMs);
+    return TmbPhaseScaffold(
+      phase: TmbPhase.cognitive,
+      phaseLabel: l10n.phaseCognitive,
+      title: l10n.sessionHoldTitle,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (state.outcome != null) ...[
+              OutcomeBanner(outcome: state.outcome!),
+              const SizedBox(height: TmbSpace.x4),
+            ],
+            TmbRadarTimer(
+              timeText: timeText,
+              progress: (hold.remainingMs / hold.totalMs).clamp(0.0, 1.0),
+              phaseLabel: l10n.phaseCognitive,
+              semanticLabel: l10n.sessionTimerRemaining(timeText),
+            ),
+            const SizedBox(height: TmbSpace.x4),
+            Text(
+              l10n.sessionHoldBody,
+              textAlign: TextAlign.center,
+              style: TmbType.bodyMd.copyWith(color: TmbColor.textSecondary),
+            ),
+          ],
+        ),
+      ),
+      bottom: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TmbButton(
+            label: state.engine.isFinished
+                ? l10n.sessionToSummary
+                : l10n.sessionHoldNext,
+            onPressed: null,
+            expand: true,
+          ),
+          const SizedBox(height: TmbSpace.x2),
+          EvacuateButton(controller: controller),
+        ],
       ),
     );
   }

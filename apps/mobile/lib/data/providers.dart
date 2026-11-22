@@ -4,6 +4,8 @@ import 'package:tmb_data/tmb_data.dart';
 import 'package:tmb_domain/tmb_domain.dart';
 import 'package:uuid/uuid.dart';
 
+import 'session_summary_store.dart';
+
 /// Единственный экземпляр БД на приложение (ARCHITECTURE D8): открывает его
 /// приложение, а не `tmb_data`. Закрывается вместе со скоупом.
 ///
@@ -26,8 +28,15 @@ final databaseProvider = Provider<TmbDatabase>((ref) {
   return db;
 });
 
+/// Репозиторий сессий. При `finishSession` дополнительно пишет сводку для
+/// виджета (`SummaryRecordingSessionRepository`); контроллер об этом не знает.
+/// Прерванную сессию контроллер фиксирует сам через `recordSessionSummary`.
 final sessionRepositoryProvider = Provider<SessionRepository>(
-  (ref) => DriftSessionRepository(ref.watch(databaseProvider)),
+  (ref) => SummaryRecordingSessionRepository(
+    DriftSessionRepository(ref.watch(databaseProvider)),
+    ref.watch(sessionSummaryStoreProvider),
+    onError: reportSummaryError,
+  ),
 );
 
 final profileRepositoryProvider = Provider<ProfileRepository>(

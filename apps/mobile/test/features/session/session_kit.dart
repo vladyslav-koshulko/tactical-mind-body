@@ -10,6 +10,7 @@ import 'package:tmb_mobile/app/app.dart';
 import 'package:tmb_mobile/app/router.dart';
 import 'package:tmb_mobile/data/content_loader.dart';
 import 'package:tmb_mobile/data/providers.dart';
+import 'package:tmb_mobile/data/session_summary_store.dart';
 import 'package:tmb_mobile/features/session/session_services.dart';
 import 'package:tmb_mobile/l10n/app_localizations_ru.dart';
 
@@ -154,6 +155,7 @@ final class SessionEnv {
   int now = fakeNowMs;
   late GoRouter router;
   final wakelock = FakeWakelock();
+  final summaryStore = InMemorySessionSummaryStore();
 
   /// Методы платформенного канала `HapticFeedback.*`, по порядку.
   final haptics = <String>[];
@@ -270,6 +272,7 @@ Future<SessionEnv> pumpSession(
           return db;
         }),
         clockProvider.overrideWithValue(() => env.now),
+        sessionMonotonicClockProvider.overrideWithValue(() => env.now),
         contentProvider.overrideWith(
           (ref) async => const BuiltinContent(taskPacks: [], exercisePacks: []),
         ),
@@ -277,6 +280,7 @@ Future<SessionEnv> pumpSession(
         taskSourcesProvider.overrideWith((ref) async => [sourceOf(tasks)]),
         sessionSeedProvider.overrideWithValue(() => 7),
         sessionWakelockProvider.overrideWithValue(env.wakelock),
+        sessionSummaryStoreProvider.overrideWithValue(env.summaryStore),
         routerProvider.overrideWithValue(env.router),
       ],
       child: TmbApp(locale: locale),

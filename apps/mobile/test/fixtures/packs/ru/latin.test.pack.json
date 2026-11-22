@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "kind": "task_pack",
+  "pack": "lang.latin.test.ru",
+  "title": "Латынь — тестовый пак",
+  "locale": "ru",
+  "license": "CC0-1.0",
+  "packSource": "builtin",
+  "status": "draft",
+  "levels": ["recruit", "fighter", "operator", "spetsnaz"],
+  "categories": [
+    {
+      "domain": "lang.latin.vocab",
+      "title": "Латынь: лексика",
+      "description": "Перевод слов и выражений."
+    },
+    {
+      "domain": "lang.latin.grammar",
+      "title": "Латынь: грамматика",
+      "description": "Формы глаголов и падежи."
+    }
+  ],
+  "items": [
+    {
+      "id": "lat.vocab.001",
+      "domain": "lang.latin.vocab",
+      "archetype": "recall",
+      "verifiable": true,
+      "timeSec": 20,
+      "difficulty": 0.1,
+      "prompt": "Переведите на русский одним словом: aqua",
+      "answer": "вода",
+      "reveal": "aqua — вода."
+    },
+    {
+      "id": "lat.vocab.002",
+      "domain": "lang.latin.vocab",
+      "archetype": "recall",
+      "verifiable": true,
+      "timeSec": 20,
+      "difficulty": 0.1,
+      "prompt": "Переведите на русский одним словом: terra",
+      "answer": "земля",
+      "accept": ["земля", "суша"],
+      "reveal": "terra — земля, суша."
+    },
+    {
+      "id": "lat.vocab.003",
+      "domain": "lang.latin.vocab",
+      "archetype": "recall",
+      "verifiable": true,
+      "timeSec": 25,
+      "difficulty": 0.25,
+      "prompt": "Как по-латински «огонь»? Введите одно слово.",
+      "answer": "ignis",
+      "reveal": "ignis — огонь."
+    },
+    {
+      "id": "lat.vocab.004",
+      "domain": "lang.latin.vocab",
+      "archetype": "choice",
+      "verifiable": true,
+      "timeSec": 20,
+      "difficulty": 0.15,
+      "prompt": "Что означает слово «lupus»?",
+      "options": ["волк", "лев", "лиса", "медведь"],
+      "answer": 0,
+      "reveal": "lupus — волк."
+    },
+    {
+      "id": "lat.vocab.005",
+      "domain": "lang.latin.vocab",
+      "archetype": "choice",
+      "verifiable": true,
+      "timeSec": 20,
+      "difficulty": 0.2,
+      "prompt": "Что означает слово «amicus»?",
+      "options": ["враг", "друг", "брат", "гость"],
+      "answer": 1,
+      "reveal": "amicus — друг; отсюда «амикошонство»."
+    },
+    {
+      "id": "lat.gram.001",
+      "domain": "lang.latin.grammar",
+      "archetype": "choice",
+      "verifiable": true,
+      "timeSec": 25,
+      "difficulty": 0.3,
+      "prompt": "Выберите форму глагола esse: «Ego ___ discipulus» (я — ученик).",
+      "options": ["sum", "es", "est", "sumus"],
+      "answer": 0,
+      "reveal": "Ego sum — «я есмь»: 1-е лицо ед. числа."
+    },
+    {
+      "id": "lat.gram.002",
+      "domain": "lang.latin.grammar",
+      "archetype": "choice",
+      "verifiable": true,
+      "timeSec": 30,
+      "difficulty": 0.45,
+      "prompt": "Родительный падеж единственного числа слова «rosa» (роза):",
+      "options": ["rosae", "rosam", "rosa", "rosis"],
+      "answer": 0,
+      "reveal": "rosa, rosae — 1-е склонение; Gen. sg. оканчивается на -ae."
+    },
+    {
+      "id": "lat.gram.003",
+      "domain": "lang.latin.grammar",
+      "archetype": "recall",
+      "verifiable": true,
+      "timeSec": 25,
+      "difficulty": 0.35,
+      "prompt": "Переведите на латынь: «я люблю» (один глагол).",
+      "answer": "amo",
+      "reveal": "amo, amare — любить; 1-е лицо ед. числа: amo."
+    },
+    {
+      "id": "lat.gram.004",
+      "domain": "lang.latin.grammar",
+      "archetype": "recall",
+      "verifiable": true,
+      "timeSec": 30,
+      "difficulty": 0.5,
+      "prompt": "Закончите поговорку: «Dura lex, sed ___» (одно слово).",
+      "answer": "lex",
+      "reveal": "Dura lex, sed lex — «закон суров, но это закон»."
+    }
+  ]
+}

@@ -1274,6 +1274,48 @@ abstract class AppLocalizations {
   /// **'К итогам'**
   String get sessionToSummary;
 
+  /// Заголовок заглушки, когда приложение сворачивали или экран гас во время сессии
+  ///
+  /// In ru, this message translates to:
+  /// **'Таймер остановлен'**
+  String get sessionPausedTitle;
+
+  /// No description provided for @sessionPausedBody.
+  ///
+  /// In ru, this message translates to:
+  /// **'Время на паузе не засчитывается. Задача скрыта и ждёт вас: нажмите «Продолжить», когда будете готовы.'**
+  String get sessionPausedBody;
+
+  /// Главная кнопка заглушки паузы: возвращает таймер в ход
+  ///
+  /// In ru, this message translates to:
+  /// **'Продолжить'**
+  String get sessionResume;
+
+  /// No description provided for @sessionPausedSemantic.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сессия на паузе, таймер остановлен'**
+  String get sessionPausedSemantic;
+
+  /// Заголовок экрана, когда задачи когнитивного окна кончились раньше срока
+  ///
+  /// In ru, this message translates to:
+  /// **'Пауза продолжается'**
+  String get sessionHoldTitle;
+
+  /// No description provided for @sessionHoldBody.
+  ///
+  /// In ru, this message translates to:
+  /// **'Задачи окна выполнены. Остаток паузы — на восстановление: следующий этап начнётся, когда выйдет время.'**
+  String get sessionHoldBody;
+
+  /// Заблокированная кнопка до конца когнитивного окна
+  ///
+  /// In ru, this message translates to:
+  /// **'Следующий этап'**
+  String get sessionHoldNext;
+
   /// No description provided for @sessionSummaryTitle.
   ///
   /// In ru, this message translates to:

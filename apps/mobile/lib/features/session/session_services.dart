@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -65,3 +66,50 @@ final sessionSeedProvider = Provider<int Function()>((ref) {
   final random = Random.secure();
   return () => generateSessionSeed(random);
 });
+
+/// Монотонные часы, мс от произвольной точки: не прыгают при смене системного
+/// времени, поясов и синхронизации по сети. Сессия меряет по ним всё, что
+/// длится (таймеры фаз, `latencyMs`, паузы); `clockProvider` даёт ей только
+/// момент старта. В тестах подменяется вместе с `clockProvider`.
+final sessionMonotonicClockProvider = Provider<int Function()>((ref) {
+  final watch = Stopwatch()..start();
+  return () => watch.elapsedMilliseconds;
+});
+
+/// Жизненный цикл приложения для сессии: свернули, погасили экран, вернулись.
+/// Вынесено в интерфейс, потому что `WidgetsBinding` нет в юнит-тестах
+/// контроллера, а виджет-тесты хотят гонять состояния своими руками.
+abstract interface class SessionLifecycleSource {
+  /// Подписывает [onChange]; возвращает функцию отписки.
+  void Function() listen(void Function(AppLifecycleState state) onChange);
+}
+
+final class _BindingLifecycleSource implements SessionLifecycleSource {
+  const _BindingLifecycleSource();
+
+  @override
+  void Function() listen(void Function(AppLifecycleState state) onChange) {
+    final WidgetsBinding binding;
+    try {
+      binding = WidgetsBinding.instance;
+    } catch (_) {
+      return () {}; // привязки нет (чистый юнит-тест): события не придут
+    }
+    final observer = _Observer(onChange);
+    binding.addObserver(observer);
+    return () => binding.removeObserver(observer);
+  }
+}
+
+class _Observer with WidgetsBindingObserver {
+  _Observer(this.onChange);
+
+  final void Function(AppLifecycleState state) onChange;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) => onChange(state);
+}
+
+final sessionLifecycleProvider = Provider<SessionLifecycleSource>(
+  (ref) => const _BindingLifecycleSource(),
+);

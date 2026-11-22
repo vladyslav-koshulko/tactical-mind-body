@@ -7,6 +7,10 @@ CRT-эстетика.
 **Ссылка на свежую сборку (без логина) — давать в начале каждой сессии:**
 https://github.com/vladyslav-koshulko/tactical-mind-body/releases/latest/download/tactical-mind-body-debug.apk
 
+**Flutter-сборка (новое приложение; `flutter-apk.yml`, prerelease `flutter-latest`):**
+https://github.com/vladyslav-koshulko/tactical-mind-body/releases/download/flutter-latest/tactical-mind-body-flutter-debug.apk
+Ссылка выше («latest») принадлежит старому HTML-прототипу — её не трогать.
+
 ## Где мы сейчас
 
 Продукт — HTML-прототип `www/index.html` (966 строк ванильного JS) в обёртке

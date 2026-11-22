@@ -47,4 +47,5 @@ export 'src/profile/profile_settings.dart';
 export 'src/profile/targets.dart';
 export 'src/session/session_block.dart';
 export 'src/session/session_template.dart';
+export 'src/summary/session_summary_snapshot.dart';
 export 'src/validation/validation_api.dart';

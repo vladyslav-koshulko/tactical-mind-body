@@ -30,6 +30,7 @@ ProviderContainer _container(
         return db;
       }),
       clockProvider.overrideWithValue(clock ?? () => fakeNowMs),
+      sessionMonotonicClockProvider.overrideWithValue(clock ?? () => fakeNowMs),
       contentProvider.overrideWith(
         (ref) async => const BuiltinContent(taskPacks: [], exercisePacks: []),
       ),

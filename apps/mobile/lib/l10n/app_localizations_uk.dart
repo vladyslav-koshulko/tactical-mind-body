@@ -664,6 +664,29 @@ class AppLocalizationsUk extends AppLocalizations {
   String get sessionToSummary => 'До підсумків';
 
   @override
+  String get sessionPausedTitle => 'Таймер зупинено';
+
+  @override
+  String get sessionPausedBody =>
+      'Час на паузі не зараховується. Завдання приховане й чекає на вас: натисніть «Продовжити», коли будете готові.';
+
+  @override
+  String get sessionResume => 'Продовжити';
+
+  @override
+  String get sessionPausedSemantic => 'Сесія на паузі, таймер зупинено';
+
+  @override
+  String get sessionHoldTitle => 'Пауза триває';
+
+  @override
+  String get sessionHoldBody =>
+      'Завдання вікна виконано. Залишок паузи — на відновлення: наступний етап почнеться, коли мине час.';
+
+  @override
+  String get sessionHoldNext => 'Наступний етап';
+
+  @override
   String get sessionSummaryTitle => 'Підсумки операції';
 
   @override

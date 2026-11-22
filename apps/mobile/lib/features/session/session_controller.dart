@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tmb_data/tmb_data.dart';
 import 'package:tmb_domain/tmb_domain.dart';
@@ -8,6 +9,7 @@ import 'package:tmb_ui/tmb_ui.dart' show TmbEffort;
 
 import '../../data/content_loader.dart';
 import '../../data/providers.dart';
+import '../../data/session_summary_store.dart';
 import 'session_services.dart';
 import 'session_state.dart';
 
@@ -18,10 +20,18 @@ const sessionTickPeriod = Duration(milliseconds: 250);
 /// Сколько мс после завершения задачи показывается её итог (баннер).
 const kOutcomeVisibleMs = 4000;
 
+/// Сколько мс остатка окна ещё стоит держать: меньше — следующий этап просто
+/// начинается чуть раньше срока, без экрана «пауза продолжается».
+const kMinHoldMs = 1000;
+
 /// Контроллер сессии: связывает движок (чистая машина состояний), БД и UI.
 ///
 ///  * план строится здесь — сид криптослучайный, из `sessionSeedProvider`;
-///  * время — только из `clockProvider`, чтобы тесты управляли им;
+///  * время движка — «активное»: `clockProvider` даёт только момент старта,
+///    дальше идёт монотонный счётчик (`sessionMonotonicClockProvider`) минус
+///    замороженные отрезки (пауза приложения, остаток когнитивного окна). Так
+///    сдвиг системных часов ничего не ломает, а `latencyMs` не раздувается
+///    (ARCHITECTURE D14, D15);
 ///  * события пишутся по ходу сессии (ARCHITECTURE D9): попытки сразу, а круг
 ///    с его подходами — когда закрыто окно оценки круга (у `RoundLog` нет
 ///    обновления `rpe`, поэтому круг пишется один раз и уже с оценкой);
@@ -40,6 +50,7 @@ class SessionController extends AsyncNotifier<SessionState> {
   late SessionPlan _plan;
   late SessionRepository _repo;
   late int Function() _now;
+  late int Function() _mono;
   late SessionHaptics _haptics;
   late SessionWakelock _wakelock;
   late String _sessionId;
@@ -47,6 +58,30 @@ class SessionController extends AsyncNotifier<SessionState> {
   Timer? _timer;
   var _ready = false;
   var _finalizing = false;
+
+  // Время движка = _wallStart + (mono − _monoStart) − _frozenMs, пока не
+  // заморожено. Заморожено — пауза приложения и/или «держим окно до срока».
+  int _wallStart = 0;
+  int _monoStart = 0;
+  int _frozenMs = 0;
+
+  /// Пауза приложения: когда началась (монотонные мс) и какое время движка
+  /// показывала. `null` — не на паузе.
+  int? _pausedAtMono;
+  int? _pausedEngineAt;
+
+  /// Держим окно до срока (D15): время движка на момент начала удержания,
+  /// когда оно кончится (монотонные мс, сдвигается на паузы внутри), длина
+  /// остатка и полная длина окна. `null` — не держим.
+  int? _holdEngineAt;
+  int? _holdEndMono;
+  var _holdLenMs = 0;
+  var _holdTotalMs = 0;
+
+  /// Сколько удержания уже отработано: оно — часть сессии, поэтому
+  /// `Session.endedAt` в БД = конец по времени движка + это (D15).
+  var _holdDoneMs = 0;
+  void Function()? _unlistenLifecycle;
 
   // Что уже ушло в БД (или стоит в очереди на запись).
   final _writtenRounds = <String>{};
@@ -81,8 +116,17 @@ class SessionController extends AsyncNotifier<SessionState> {
     _lastDisplayKey = null;
     _lastBlockIndex = null;
     _lastCueCount = 0;
+    _frozenMs = 0;
+    _pausedAtMono = null;
+    _pausedEngineAt = null;
+    _holdEngineAt = null;
+    _holdEndMono = null;
+    _holdLenMs = 0;
+    _holdTotalMs = 0;
+    _holdDoneMs = 0;
     _repo = ref.read(sessionRepositoryProvider);
     _now = ref.read(clockProvider);
+    _mono = ref.read(sessionMonotonicClockProvider);
     _haptics = ref.read(sessionHapticsProvider);
     _wakelock = ref.read(sessionWakelockProvider);
     ref.onDispose(_dispose);
@@ -106,6 +150,8 @@ class SessionController extends AsyncNotifier<SessionState> {
     );
 
     final startMs = _now();
+    _wallStart = startMs;
+    _monoStart = _mono();
     _engine = SessionEngine(
       plan: _plan,
       ids: ref.read(idSourceProvider),
@@ -125,9 +171,12 @@ class SessionController extends AsyncNotifier<SessionState> {
     }
     unawaited(_wakelock.enable().catchError((_) {}));
     _ready = true;
+    _unlistenLifecycle = ref
+        .read(sessionLifecycleProvider)
+        .listen(_onLifecycle);
     final running = _compose(_engine.state);
     _flush();
-    _timer = Timer.periodic(sessionTickPeriod, (_) => _onTick());
+    _startTimer();
     return running;
   }
 
@@ -149,6 +198,7 @@ class SessionController extends AsyncNotifier<SessionState> {
 
   void _dispose() {
     _timer?.cancel();
+    _unlistenLifecycle?.call();
     if (_ready) unawaited(_wakelock.disable().catchError((_) {}));
   }
 
@@ -159,17 +209,17 @@ class SessionController extends AsyncNotifier<SessionState> {
   void completeSet([int? done]) => _act(() {
     final ex = _engine.state.exercise;
     if (ex == null) return;
-    _engine.completeSet(done ?? ex.prescribed, _now());
+    _engine.completeSet(done ?? ex.prescribed, _engineNow());
   });
 
-  void skipExercise() => _act(() => _engine.skipExercise(_now()));
+  void skipExercise() => _act(() => _engine.skipExercise(_engineNow()));
 
-  void endStudy() => _act(() => _engine.endStudy(_now()));
+  void endStudy() => _act(() => _engine.endStudy(_engineNow()));
 
   void submitAnswer(TaskAnswer answer) =>
-      _act(() => _engine.submitAnswer(answer, _now()));
+      _act(() => _engine.submitAnswer(answer, _engineNow()));
 
-  void skipTask() => _act(() => _engine.skipTask(_now()));
+  void skipTask() => _act(() => _engine.skipTask(_engineNow()));
 
   /// Оценка последнего круга. Повторный вызов заменяет оценку.
   void rate(TmbEffort effort) => _act(() {
@@ -184,7 +234,18 @@ class SessionController extends AsyncNotifier<SessionState> {
   /// «Эвакуация»: прерывает сессию (`Session.endedAt` остаётся `null`).
   Future<void> evacuate() async {
     if (!_canAct) return;
-    _engine.abort(_now());
+    if (_holdEngineAt != null && _engine.state.isFinished) {
+      // Последнее окно уже закрыто движком, ждём лишь срок: «эвакуация» тут
+      // просто досрочный конец удержания и обычные итоги.
+      _holdDoneMs += _holdLenMs - _holdRemainingMs;
+      _pausedAtMono = null;
+      _pausedEngineAt = null;
+      _holdEngineAt = null;
+      _holdEndMono = null;
+      _afterEngineCall();
+      return;
+    }
+    _engine.abort(_engineNow());
     if (_engine.state.status == EngineStatus.aborted) {
       await _finalize(aborted: true);
     } else {
@@ -195,28 +256,136 @@ class SessionController extends AsyncNotifier<SessionState> {
 
   /// «К итогам» с экрана оценки последнего круга.
   Future<void> finish() async {
-    if (!_canAct || !_engine.state.isFinished) return;
+    if (!_canAct || _isFrozen || !_engine.state.isFinished) return;
     await _finalize(aborted: false);
+  }
+
+  /// «Продолжить» после паузы приложения. Время паузы вычитается из времени
+  /// движка целиком: ни таймеры, ни `latencyMs` её не видят (D14).
+  void resume() {
+    final at = _pausedAtMono;
+    if (at == null || !_canAct) return;
+    final away = _mono() - at;
+    _frozenMs += away;
+    final holdEnd = _holdEndMono;
+    if (holdEnd != null) _holdEndMono = holdEnd + away;
+    _pausedAtMono = null;
+    _pausedEngineAt = null;
+    _startTimer();
+    _afterEngineCall();
+  }
+
+  /// Пауза по уходу приложения в фон (или вручную). Повторный вызов — пустая
+  /// операция. Когда таймеров нет (оценка последнего круга), паузить нечего.
+  void pause() {
+    if (!_canAct || _pausedAtMono != null) return;
+    if (_holdEngineAt == null) {
+      // Сроки, истёкшие до ухода в фон, принадлежат активному времени.
+      _stepEngine(() => _engine.tick(_engineNow()));
+      if (!_engine.state.isRunning && _holdEngineAt == null) {
+        _afterEngineCall();
+        return;
+      }
+    }
+    _pausedEngineAt = _engineNow();
+    _pausedAtMono = _mono();
+    _timer?.cancel();
+    _afterEngineCall();
+  }
+
+  void _onLifecycle(AppLifecycleState lifecycle) {
+    // `inactive` не трогаем: шторка уведомлений и системные диалоги не уводят
+    // с экрана. Экран гаснет и приложение сворачивается через `hidden`.
+    if (lifecycle == AppLifecycleState.hidden ||
+        lifecycle == AppLifecycleState.paused) {
+      pause();
+    }
   }
 
   // --- внутреннее ----------------------------------------------------------
 
   bool get _canAct => _ready && !_finalizing;
 
+  /// Время движка заморожено: пауза приложения или удержание окна.
+  bool get _isFrozen => _pausedAtMono != null || _holdEngineAt != null;
+
+  /// Время движка, мс эпохи UTC «активного» времени сессии.
+  int _engineNow() =>
+      _holdEngineAt ??
+      _pausedEngineAt ??
+      _wallStart + _mono() - _monoStart - _frozenMs;
+
+  void _startTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(sessionTickPeriod, (_) => _onTick());
+  }
+
   void _act(void Function() action) {
-    if (!_canAct) return;
+    if (!_canAct || _isFrozen) return;
+    _stepEngine(action);
+    _afterEngineCall();
+  }
+
+  /// Вызов движка с учётом удержания окна (D15): если окно закрылось раньше
+  /// срока, время движка замораживается до срока.
+  void _stepEngine(void Function() call) {
+    final prev = _engine.state;
     try {
-      action();
+      call();
     } on StateError {
       // Срок истёк между нажатием и обработкой (движок сам завершил блок или
       // сессию): состояние всё равно надо опубликовать.
     }
+    _detectHold(prev);
+  }
+
+  void _detectHold(EngineState prev) {
+    if (_holdEngineAt != null) return;
+    if (!prev.isRunning || prev.phase != Phase.cognitive) return;
+    final cur = _engine.state;
+    final left =
+        cur.isFinished || (cur.isRunning && cur.blockIndex != prev.blockIndex);
+    if (!left) return;
+    final remaining = prev.nowMs + (prev.blockRemainingMs ?? 0) - cur.nowMs;
+    if (remaining < kMinHoldMs) return;
+    _holdEngineAt = cur.nowMs;
+    _holdLenMs = remaining;
+    _holdEndMono = _mono() + remaining;
+    _holdTotalMs = (prev.block! as PlannedCognitiveBlock).durationSec * 1000;
+  }
+
+  int get _holdRemainingMs {
+    final end = _holdEndMono;
+    if (end == null) return 0;
+    final left = end - (_pausedAtMono ?? _mono());
+    return left < 0 ? 0 : (left > _holdLenMs ? _holdLenMs : left);
+  }
+
+  void _endHold() {
+    _frozenMs += _holdLenMs;
+    _holdDoneMs += _holdLenMs;
+    _holdEngineAt = null;
+    _holdEndMono = null;
+    // Итог последней задачи уже был виден на экране удержания.
+    _outcomeAt = _engine.state.nowMs - kOutcomeVisibleMs;
     _afterEngineCall();
   }
 
   void _onTick() {
-    if (!_canAct || !_engine.state.isRunning) return;
-    _engine.tick(_now());
+    if (!_ready || _finalizing || _pausedAtMono != null) return;
+    if (_holdEngineAt != null) {
+      final end = _holdEndMono!;
+      if (_mono() >= end) {
+        _endHold();
+      } else if (_displayKey(_engine.state) == _lastDisplayKey) {
+        _flush();
+      } else {
+        _afterEngineCall();
+      }
+      return;
+    }
+    if (!_engine.state.isRunning) return;
+    _stepEngine(() => _engine.tick(_engineNow()));
     final st = _engine.state;
     // Движок тикает 4 раза в секунду ради точности сроков, а экран меняется
     // раз в секунду (цифры таймеров) или при смене состояния — лишние
@@ -246,6 +415,8 @@ class SessionController extends AsyncNotifier<SessionState> {
       (st.blockElapsedMs ?? 0) ~/ 1000,
       st.lastOutcome?.attempt.id,
       _outcomeVisible(st.nowMs),
+      _pausedAtMono != null,
+      _holdEngineAt == null ? -1 : sec(_holdRemainingMs),
     ].join('|');
   }
 
@@ -259,7 +430,7 @@ class SessionController extends AsyncNotifier<SessionState> {
       unawaited(_finalize(aborted: true));
       return;
     }
-    if (st.isFinished && !_hasClosedRound) {
+    if (st.isFinished && !_hasClosedRound && _holdEngineAt == null) {
       // Оценивать нечего (нет физики): сразу к итогам.
       _flush();
       unawaited(_finalize(aborted: false));
@@ -309,10 +480,14 @@ class SessionController extends AsyncNotifier<SessionState> {
       _outcomeAttemptId = outcome.attempt.id;
       _outcomeAt = now;
     }
-    final showOutcome = outcome != null && now - _outcomeAt < kOutcomeVisibleMs;
+    final holding = _holdEngineAt != null;
+    final showOutcome =
+        outcome != null && (holding || now - _outcomeAt < kOutcomeVisibleMs);
 
-    // Вибро: смена фазы/блока и новая подсказка `cues`.
-    if (st.isRunning) {
+    // Вибро: смена фазы/блока и новая подсказка `cues`. Пока держим окно,
+    // движок уже в следующем блоке, но пользователь ещё в паузе: вибро — на
+    // конце удержания.
+    if (st.isRunning && !holding) {
       if (_lastBlockIndex != null && _lastBlockIndex != st.blockIndex) {
         unawaited(_haptics.phaseChanged());
       }
@@ -327,10 +502,14 @@ class SessionController extends AsyncNotifier<SessionState> {
     return SessionRunning(
       engine: st,
       plan: _plan,
-      ratingOpen: _windowOpen(st),
+      ratingOpen: _windowOpen(st) && !holding,
       rating: _rating,
       outcome: showOutcome ? outcome : null,
       awaitingFinish: st.isFinished,
+      isPaused: _pausedAtMono != null,
+      hold: holding
+          ? SessionHold(remainingMs: _holdRemainingMs, totalMs: _holdTotalMs)
+          : null,
     );
   }
 
@@ -386,10 +565,12 @@ class SessionController extends AsyncNotifier<SessionState> {
     _timer?.cancel();
     _flush();
     await _writing;
-    final endedAt = _engine.state.endedAt;
-    if (!aborted && endedAt != null) {
+    final engineEnd = _engine.state.endedAt;
+    if (!aborted && engineEnd != null) {
       try {
-        await _repo.finishSession(_sessionId, endedAt: endedAt);
+        // Часы движка не считают удержание окна (D15), а сессия его
+        // длилась: возвращаем в `endedAt`, чтобы «длительность» была честной.
+        await _repo.finishSession(_sessionId, endedAt: engineEnd + _holdDoneMs);
       } catch (error, stack) {
         FlutterError.reportError(
           FlutterErrorDetails(
@@ -401,9 +582,24 @@ class SessionController extends AsyncNotifier<SessionState> {
         );
       }
     }
+    if (aborted) unawaited(_recordAbortedSummary());
     unawaited(_wakelock.disable().catchError((_) {}));
     if (ref.mounted) {
       state = AsyncData(SessionEnded(sessionId: _sessionId, aborted: aborted));
+    }
+  }
+
+  /// Для завершённой сессии сводку пишет `SummaryRecordingSessionRepository`
+  /// внутри `finishSession`; прерванная `finishSession` не вызывает, поэтому
+  /// сводка пишется здесь. В фоне: экран итогов её не ждёт, сбой хранилища
+  /// сессию не ломает.
+  Future<void> _recordAbortedSummary() async {
+    try {
+      final store = ref.read(sessionSummaryStoreProvider);
+      final bundle = await _repo.loadSession(_sessionId);
+      if (bundle != null) await recordSessionSummary(store, bundle);
+    } on Object catch (error, stack) {
+      reportSummaryError(error, stack);
     }
   }
 }

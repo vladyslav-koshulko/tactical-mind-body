@@ -17,6 +17,8 @@ final class SessionRunning extends SessionState {
     required this.rating,
     required this.outcome,
     required this.awaitingFinish,
+    this.isPaused = false,
+    this.hold,
   });
 
   /// Снимок движка на момент последнего вызова.
@@ -36,6 +38,26 @@ final class SessionRunning extends SessionState {
   /// Движок завершил все блоки, но последний круг ещё не оценён: показываем
   /// экран оценки, итоги — по кнопке.
   final bool awaitingFinish;
+
+  /// Приложение уходило в фон (или экран гас): время остановлено, экран
+  /// закрыт заглушкой до «Продолжить». Пауза не пишется в события.
+  final bool isPaused;
+
+  /// Когнитивное окно закрыто досрочно (задачи кончились), но срок не вышел:
+  /// держим паузу до срока (ARCHITECTURE D15). Пока не `null`, экран показывает
+  /// остаток паузы вместо снимка движка (тот уже в следующем блоке).
+  final SessionHold? hold;
+}
+
+/// Остаток когнитивного окна после последней задачи.
+@immutable
+final class SessionHold {
+  const SessionHold({required this.remainingMs, required this.totalMs});
+
+  final int remainingMs;
+
+  /// Полная длина окна (`CognitiveBlock.durationSec`), мс.
+  final int totalMs;
 }
 
 /// Сессия закончена и записана: экран уводит на итоги.

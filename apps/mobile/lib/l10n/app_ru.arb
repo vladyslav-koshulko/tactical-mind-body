@@ -472,6 +472,25 @@
     "description": "Подпись экрана оценки последнего круга"
   },
   "sessionToSummary": "К итогам",
+  "sessionPausedTitle": "Таймер остановлен",
+  "@sessionPausedTitle": {
+    "description": "Заголовок заглушки, когда приложение сворачивали или экран гас во время сессии"
+  },
+  "sessionPausedBody": "Время на паузе не засчитывается. Задача скрыта и ждёт вас: нажмите «Продолжить», когда будете готовы.",
+  "sessionResume": "Продолжить",
+  "@sessionResume": {
+    "description": "Главная кнопка заглушки паузы: возвращает таймер в ход"
+  },
+  "sessionPausedSemantic": "Сессия на паузе, таймер остановлен",
+  "sessionHoldTitle": "Пауза продолжается",
+  "@sessionHoldTitle": {
+    "description": "Заголовок экрана, когда задачи когнитивного окна кончились раньше срока"
+  },
+  "sessionHoldBody": "Задачи окна выполнены. Остаток паузы — на восстановление: следующий этап начнётся, когда выйдет время.",
+  "sessionHoldNext": "Следующий этап",
+  "@sessionHoldNext": {
+    "description": "Заблокированная кнопка до конца когнитивного окна"
+  },
   "sessionSummaryTitle": "Итоги операции",
   "sessionSummaryStatusCompleted": "Завершена",
   "sessionSummaryStatusAborted": "Прервана",

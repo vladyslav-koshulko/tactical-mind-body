@@ -15,3 +15,5 @@ export 'src/repositories/drift_profile_repository.dart';
 export 'src/repositories/drift_session_repository.dart';
 export 'src/repositories/profile_repository.dart';
 export 'src/repositories/session_repository.dart';
+export 'src/repositories/summary_recording_session_repository.dart';
+export 'src/summary/session_summary_store.dart';
