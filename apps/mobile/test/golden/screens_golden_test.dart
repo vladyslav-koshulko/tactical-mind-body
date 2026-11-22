@@ -9,6 +9,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:tmb_mobile/app/router.dart';
 import 'package:tmb_mobile/features/session/session_services.dart';
 
+import '../features/session/session_kit.dart';
 import '../features/settings/settings_test_support.dart';
 
 /// Скриншот-тесты экранов (golden). Нужны, чтобы глазами увидеть вёрстку без
@@ -78,4 +79,26 @@ void main() {
       matchesGoldenFile('goldens/dashboard_narrow_big_text.png'),
     );
   });
+
+  // Когнитивная фаза с цифровой клавиатурой: «Эвакуация» закреплена внизу,
+  // прокручивается только содержимое задачи.
+  for (final (name, size, scale) in [
+    ('session_cognitive', const Size(360, 800), 1.0),
+    ('session_cognitive_narrow_big_text', const Size(320, 568), 1.5),
+  ]) {
+    testWidgets('golden: $name', (tester) async {
+      final env = await pumpSession(
+        tester,
+        tasks: [recallNumeric],
+        size: size,
+        textScale: scale,
+      );
+      await env.completeRound();
+      await expectLater(
+        find.byType(WidgetsApp),
+        matchesGoldenFile('goldens/$name.png'),
+      );
+      await env.unmount();
+    });
+  }
 }

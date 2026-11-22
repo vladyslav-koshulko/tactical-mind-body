@@ -63,8 +63,8 @@ String _visibleTexts() =>
 
 /// Нажимает [finder] и даёт кадрам отработать (запись в БД, смена экрана).
 Future<void> _tap(WidgetTester tester, Finder finder) async {
-  // Кнопка может стоять ниже экрана (числовая клавиатура вытесняет «Эвакуацию»
-  // за край, экран прокручивается): сначала докручиваем.
+  // Кнопка может стоять ниже экрана (ответ, пропуск и т. п. внутри прокрутки):
+  // сначала докручиваем. «Эвакуация» закреплена и видна всегда.
   await tester.ensureVisible(finder.first);
   await tester.pump(const Duration(milliseconds: 100));
   await tester.tap(finder.first);

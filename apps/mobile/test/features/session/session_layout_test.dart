@@ -36,7 +36,79 @@ void _tapTargetsOk(WidgetTester tester) {
   }
 }
 
+/// «Эвакуация» видна без прокрутки: целиком внутри видимой области (экран
+/// минус системная клавиатура) и не лежит внутри прокручиваемого контейнера.
+void _evacuateAlwaysVisible(WidgetTester tester, Size size, {double ime = 0}) {
+  final finder = find.text(l10n.sessionEvacuate.toUpperCase());
+  expect(finder, findsOneWidget);
+  expect(
+    find.ancestor(of: finder, matching: find.byType(Scrollable)),
+    findsNothing,
+    reason: 'Эвакуация не должна быть внутри прокручиваемой области',
+  );
+  final button = find.ancestor(of: finder, matching: find.byType(TmbButton));
+  final rect = tester.getRect(button);
+  expect(rect.top, greaterThanOrEqualTo(0));
+  expect(rect.bottom, lessThanOrEqualTo(size.height - ime));
+  expect(rect.height, greaterThanOrEqualTo(TmbSize.tapTarget));
+}
+
 void main() {
+  group('Эвакуация видна без прокрутки в когнитивной фазе', () {
+    const sizes = {
+      '360×800 ×1': (Size(360, 800), 1.0),
+      '360×800 ×1.5': (Size(360, 800), 1.5),
+      '320×568 ×1.5': (Size(320, 568), 1.5),
+    };
+    final tasks = {
+      'recall (цифры, клавиатура)': recallNumeric,
+      'recall (текст)': recallText,
+      'choice': choiceTask,
+      'verbal': verbalTask,
+    };
+    for (final MapEntry(key: sizeName, value: (size, scale)) in sizes.entries) {
+      for (final MapEntry(key: taskName, value: task) in tasks.entries) {
+        testWidgets('$taskName, $sizeName', (tester) async {
+          final env = await pumpSession(
+            tester,
+            tasks: [task],
+            prefs: const SessionPreferences(rounds: 2),
+            size: size,
+            textScale: scale,
+          );
+          // Физический экран: то же требование.
+          _evacuateAlwaysVisible(tester, size);
+          await env.completeRound();
+          expect(find.text(l10n.phaseCognitive.toUpperCase()), findsWidgets);
+          _noOverflow(tester);
+          _evacuateAlwaysVisible(tester, size);
+          await env.unmount();
+        });
+      }
+    }
+
+    testWidgets(
+      'recall (текст) с открытой системной клавиатурой, 320×568 ×1.5',
+      (tester) async {
+        const size = Size(320, 568);
+        final env = await pumpSession(
+          tester,
+          tasks: [recallText],
+          size: size,
+          textScale: 1.5,
+        );
+        await env.completeRound();
+        const ime = 250.0;
+        tester.view.viewInsets = const FakeViewPadding(bottom: ime * 3);
+        addTearDown(tester.view.resetViewInsets);
+        await env.settle();
+        _noOverflow(tester);
+        _evacuateAlwaysVisible(tester, size, ime: ime);
+        await env.unmount();
+      },
+    );
+  });
+
   group('320 px, шрифт ×1.5: нет overflow', () {
     testWidgets('физическая фаза', (tester) async {
       final env = await _pump(tester, [recallNumeric]);

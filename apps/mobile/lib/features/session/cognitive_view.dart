@@ -74,11 +74,12 @@ class CognitiveView extends StatelessWidget {
               expand: true,
               onPressed: controller.skipTask,
             ),
-            const SizedBox(height: TmbSpace.x2),
-            EvacuateButton(controller: controller),
           ],
         ),
       ),
+      // «Эвакуация» закреплена вне прокрутки: цифровая клавиатура, длинный
+      // текст задачи или крупный шрифт не должны уводить её за экран.
+      bottom: EvacuateButton(controller: controller),
     );
   }
 }
