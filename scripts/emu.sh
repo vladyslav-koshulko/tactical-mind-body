@@ -7,7 +7,7 @@
 #   scripts/emu.sh build        собрать debug-APK
 #   scripts/emu.sh install      собрать (если надо), поставить поверх и запустить
 #   scripts/emu.sh launch       просто запустить приложение
-#   scripts/emu.sh test         сквозной интеграционный тест + скриншоты
+#   scripts/emu.sh test         сквозные тесты (3 сценария) + скриншоты, с настоящим уходом в фон
 #   scripts/emu.sh shot [имя]   скриншот экрана эмулятора в $TMB_OUT/screenshots
 #   scripts/emu.sh reset        стереть данные приложения (чистый первый запуск)
 #
@@ -88,12 +88,40 @@ cmd_reset() {
   fi
 }
 
+# Следящий процесс для сквозного теста: тест печатает маркер TMB_E2E_BACKGROUND
+# (debugPrint → logcat, тег flutter) и ждёт заглушку паузы; здесь по маркеру
+# настоящее сворачивание (HOME), скриншот лаунчера и возврат приложения через
+# monkey. Так проверяется жизненный цикл на эмуляторе без правки `flutter drive`.
+cmd_lifecycle_watch() {
+  adb_ logcat -c
+  adb_ logcat -v raw -s flutter:I | while IFS= read -r line; do
+    case "$line" in
+      *TMB_E2E_BACKGROUND*)
+        sleep 1
+        adb_ shell input keyevent KEYCODE_HOME
+        sleep 3
+        cmd_shot "17a_launcher_while_backgrounded" >/dev/null
+        adb_ shell monkey -p "$TMB_APP_ID" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+        echo "lifecycle: HOME → возврат выполнены"
+        ;;
+    esac
+  done
+}
+
 cmd_test() {
   cmd_start
   mkdir -p "$TMB_OUT/screenshots"
+  cmd_lifecycle_watch &
+  local watcher=$!
+  local rc=0
   (cd "$TMB_REPO/apps/mobile" && TMB_OUT="$TMB_OUT" flutter drive \
     --driver=test_driver/integration_test.dart \
-    --target=integration_test/app_flow_test.dart -d "$SERIAL")
+    --target=integration_test/app_flow_test.dart \
+    --dart-define=TMB_REAL_LIFECYCLE=true -d "$SERIAL") || rc=$?
+  # Убираем и сам цикл чтения, и его logcat.
+  pkill -P "$watcher" 2>/dev/null || true
+  kill "$watcher" 2>/dev/null || true
+  return "$rc"
 }
 
 cmd_shot() {
