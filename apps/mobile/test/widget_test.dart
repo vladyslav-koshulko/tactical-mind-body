@@ -1,13 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tmb_mobile/dashboard/location_tile.dart';
 import 'package:tmb_mobile/l10n/app_localizations_ru.dart';
 import 'package:tmb_mobile/l10n/app_localizations_uk.dart';
-import 'package:tmb_mobile/main.dart';
+import 'package:tmb_mobile/app/app.dart';
 import 'package:tmb_ui/tmb_ui.dart';
+
+import 'features/settings/settings_test_support.dart' show unmountApp;
+import 'helpers.dart';
 
 final _ukLetters = RegExp('[іїєґ]');
 
@@ -15,7 +19,13 @@ Future<void> _pump(WidgetTester tester, Locale locale) async {
   tester.view.physicalSize = const Size(360 * 3, 800 * 3);
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
-  await tester.pumpWidget(TmbApp(locale: locale));
+  addTearDown(() => unmountApp(tester));
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: testOverrides(),
+      child: TmbApp(locale: locale),
+    ),
+  );
   await tester.pumpAndSettle();
 }
 

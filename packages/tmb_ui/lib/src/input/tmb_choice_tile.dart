@@ -3,7 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../tokens.dart';
 
 /// Крупная плитка одиночного выбора — основа [TmbSelfRatingBar] и
-/// [TmbEffortPicker]. Внутренняя: наружу не экспортируется.
+/// [TmbEffortPicker]; экспортируется для вариантов ответа когнитивных задач.
 ///
 /// Выбранность передаётся не только цветом (инвариант 6): заливка + галочка.
 class TmbChoiceTile extends StatelessWidget {

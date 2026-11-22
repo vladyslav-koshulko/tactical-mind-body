@@ -73,9 +73,11 @@ jobs:
         working-directory: packages/tmb_ui
         run: flutter test
 
+      # Скриншот-тесты (golden) и сквозной прогон на эмуляторе гоняются локально —
+      # scripts/ci-local.sh, docs/TESTING.md: эталоны зависят от платформы рендера.
       - name: Test apps/mobile
         working-directory: apps/mobile
-        run: flutter test
+        run: flutter test --exclude-tags golden
 
       # Встроенные паки в CI проверяются строго: любой error и warning — сбой
       # (docs/SCHEMAS.md §9, решение 13), иначе опечатки в полях тихо игнорируются.

@@ -11,3 +11,6 @@ android/local.properties
 # Flutter / Dart
 .dart_tool/
 build/
+
+# Генерируется Flutter-плагинами при сборке (корневой android/ — Capacitor-прототип)
+android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java

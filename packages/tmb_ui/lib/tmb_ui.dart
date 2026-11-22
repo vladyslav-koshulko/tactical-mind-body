@@ -1,5 +1,6 @@
 export 'src/button/tmb_button.dart';
 export 'src/exercise/tmb_exercise_row.dart';
+export 'src/input/tmb_choice_tile.dart';
 export 'src/input/tmb_effort_picker.dart';
 export 'src/input/tmb_self_rating_bar.dart';
 export 'src/keypad/tmb_numeric_keypad.dart';

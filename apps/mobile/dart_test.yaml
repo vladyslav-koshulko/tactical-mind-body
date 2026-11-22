@@ -1,0 +1,4 @@
+# Скриншот-тесты (test/golden) гоняются локально через scripts/golden.sh:
+# эталоны зависят от платформы рендера, в CI их исключаем (--exclude-tags golden).
+tags:
+  golden:

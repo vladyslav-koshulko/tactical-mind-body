@@ -1,16 +1,550 @@
 {
   "@@locale": "ru",
   "appName": "Tactical Mind & Body",
-  "@appName": { "description": "Название приложения (бренд, не переводится)" },
+  "@appName": {
+    "description": "Название приложения (бренд, не переводится)"
+  },
   "dashboardTitle": "Дашборд",
   "locationHome": "Дом",
   "locationGym": "Зал",
   "locationStreet": "Улица",
   "locationSelected": "Выбрано",
-  "@locationSelected": { "description": "Метка выбранной плитки локации (дублирует рамку нецветовым каналом)" },
+  "@locationSelected": {
+    "description": "Метка выбранной плитки локации (дублирует рамку нецветовым каналом)"
+  },
   "startOperation": "Начать операцию",
   "lastOperationTitle": "Последняя операция",
   "lastOperationEmpty": "Пока нет данных",
   "phasePhysical": "Физическая фаза",
-  "phaseCognitive": "Когнитивная фаза"
+  "phaseCognitive": "Когнитивная фаза",
+  "dashboardSettings": "Настройки",
+  "@dashboardSettings": {
+    "description": "Подпись кнопки-шестерёнки на дашборде (ведёт в настройки)"
+  },
+  "appLoading": "Загрузка контента",
+  "@appLoading": {
+    "description": "Экран старта: идёт чтение встроенных паков"
+  },
+  "appLoadErrorTitle": "Не удалось загрузить контент",
+  "appLoadErrorBody": "Встроенные наборы заданий повреждены или не найдены. Переустановите приложение.",
+  "appLoadErrorDetails": "Подробности: {details}",
+  "@appLoadErrorDetails": {
+    "description": "Техническая причина ошибки загрузки (не переводится)",
+    "placeholders": {
+      "details": {
+        "type": "String"
+      }
+    }
+  },
+  "appRetry": "Повторить",
+  "appRouteNotFoundTitle": "Экран не найден",
+  "appBackToDashboard": "На дашборд",
+  "dashboardLocationHeading": "Локация",
+  "dashboardLocationSoon": "Скоро",
+  "@dashboardLocationSoon": {
+    "description": "Метка недоступной в этой версии локации (дублирует приглушённый вид нецветовым каналом)"
+  },
+  "dashboardDifficultyHeading": "Сложность",
+  "dashboardDifficultyRecruit": "Рекрут",
+  "dashboardDifficultyFighter": "Боец",
+  "dashboardDifficultyOperator": "Оператор",
+  "dashboardDifficultySpetsnaz": "Спецназ",
+  "dashboardLastOperationDone": "Завершена",
+  "dashboardLastOperationInterrupted": "Прервана",
+  "dashboardLastOperationRounds": "Кругов: {count}",
+  "@dashboardLastOperationRounds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardLastOperationTasks": "Задач: {count}",
+  "@dashboardLastOperationTasks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardLastOperationDetails": "Подробнее",
+  "dashboardSaveError": "Не удалось сохранить выбор",
+  "settingsTitle": "Настройки",
+  "settingsBack": "Назад",
+  "settingsLoading": "Загрузка настроек",
+  "settingsLoadError": "Не удалось прочитать настройки",
+  "settingsSaveError": "Не удалось сохранить изменение",
+  "settingsSectionSession": "Шаблон операции",
+  "settingsTemplateDualTask": "Dual-Task",
+  "settingsTemplateDualTaskHint": "Круг, когнитивное окно, снова круг",
+  "settingsTemplatePhysicalOnly": "Только физика",
+  "settingsTemplatePhysicalOnlyHint": "Круги подряд, без когнитивных задач",
+  "settingsTemplateCognitiveOnly": "Только когниция",
+  "settingsTemplateCognitiveOnlyHint": "Только задачи, без упражнений",
+  "settingsTemplateCustom": "Своя последовательность",
+  "settingsSectionParams": "Параметры операции",
+  "settingsRounds": "Число кругов",
+  "settingsWindows": "Число когнитивных окон",
+  "settingsCognitiveSec": "Длительность когнитивного окна",
+  "settingsRestSec": "Отдых между кругами",
+  "settingsRestNone": "Без отдыха",
+  "settingsSecondsValue": "{value} с",
+  "@settingsSecondsValue": {
+    "description": "Число секунд с единицей",
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsStepperDecrease": "Уменьшить: {label}",
+  "@settingsStepperDecrease": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsStepperIncrease": "Увеличить: {label}",
+  "@settingsStepperIncrease": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsStepperEdit": "Ввести значение: {label}",
+  "@settingsStepperEdit": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsStepperRangeError": "Введите число от {min} до {max}",
+  "@settingsStepperRangeError": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsConfirm": "Готово",
+  "settingsCancel": "Отмена",
+  "settingsSectionReps": "Нагрузка по умолчанию",
+  "settingsRepsMode": "Режим повторений",
+  "settingsRepsModeFixed": "Фиксированный",
+  "settingsRepsModeRange": "Диапазон",
+  "settingsRepsHint": "Цель для упражнений без своей цели. В диапазоне число выпадает случайно на каждый круг.",
+  "settingsTargetReps": "Повторения",
+  "settingsTargetSeconds": "Удержание, секунды",
+  "settingsTargetValue": "Значение",
+  "settingsTargetFrom": "От",
+  "settingsTargetTo": "До",
+  "settingsSectionProgression": "Прогрессия нагрузки",
+  "settingsProgressionToggle": "Подстройка нагрузки по истории",
+  "settingsProgressionHint": "Алгоритм появится в версии 0.2: пока сохраняется только этот переключатель, нагрузка не меняется.",
+  "settingsOn": "Вкл",
+  "settingsOff": "Выкл",
+  "settingsSectionMore": "Данные и приложение",
+  "settingsLinkCategories": "Категории задач",
+  "settingsLinkCategoriesSummary": "Включено {enabled} из {total}",
+  "@settingsLinkCategoriesSummary": {
+    "placeholders": {
+      "enabled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsLinkTargets": "Цели упражнений",
+  "settingsLinkTargetsSummary": "Своих целей: {count}",
+  "@settingsLinkTargetsSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsLinkExport": "Экспорт данных",
+  "settingsLinkAbout": "О приложении",
+  "categoriesTitle": "Категории задач",
+  "categoriesLoading": "Загрузка категорий",
+  "categoriesLoadError": "Не удалось собрать список категорий",
+  "categoriesSectionVerifiable": "Проверяемые",
+  "categoriesSectionVerifiableHint": "Ответ проверяет приложение: верно или нет.",
+  "categoriesSectionUnverifiable": "Непроверяемые",
+  "categoriesSectionUnverifiableHint": "Самооценка по чек-листу: не влияют на Индекс и рейтинги.",
+  "categoriesSectionSummary": "Включено категорий: {enabled} из {total}",
+  "@categoriesSectionSummary": {
+    "placeholders": {
+      "enabled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "categoriesEnableAll": "Включить все",
+  "categoriesDisableAll": "Выключить все",
+  "categoriesTasksCount": "Задач: {count}",
+  "@categoriesTasksCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categoriesEmptySection": "В этом разделе пока нет задач",
+  "categoriesEmptyPool": "Нельзя отключить всё: должна остаться хотя бы одна включённая категория.",
+  "categoriesSaveError": "Не удалось сохранить выбор категорий",
+  "categoriesStateOn": "Включена",
+  "categoriesStateOff": "Выключена",
+  "categoriesStateMixed": "Включена частично",
+  "categoriesGroupMath": "Математика",
+  "categoriesGroupCog": "Когнитивные",
+  "categoriesGroupArithmetic": "Арифметика",
+  "categoriesGroupMemory": "Память",
+  "categoriesGroupUncertainty": "Неопределённость",
+  "categoriesGroupVerbal": "Вербальные",
+  "targetsTitle": "Цели упражнений",
+  "targetsHint": "Своя цель заменяет значение по умолчанию. Заданные вручную цели прогрессия не меняет.",
+  "targetsLoading": "Загрузка упражнений",
+  "targetsLoadError": "Не удалось загрузить упражнения",
+  "targetsEmpty": "Упражнений нет",
+  "targetsCustom": "Своя цель",
+  "targetsDefault": "По умолчанию",
+  "targetsReset": "Сбросить к умолчанию",
+  "targetsSaveError": "Не удалось сохранить цель",
+  "targetsUnitReps": "повт.",
+  "targetsUnitSeconds": "сек",
+  "targetsRangeToggle": "Диапазон",
+  "targetsValue": "Значение",
+  "targetsFrom": "От",
+  "targetsTo": "До",
+  "targetsValueFixed": "{value} {unit}",
+  "@targetsValueFixed": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "targetsValueRange": "{min}–{max} {unit}",
+  "@targetsValueRange": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "exportTitle": "Экспорт данных",
+  "exportDescription": "Все записанные события тренировок одним JSON-файлом: сессии, круги, подходы и попытки. Файл можно сохранить или отправить через системное меню.",
+  "exportPrivacy": "Приложение само ничего не отправляет: файл уйдёт только туда, куда вы его направите.",
+  "exportCounts": "Сессий: {sessions} · кругов: {rounds} · подходов: {sets} · попыток: {attempts}",
+  "@exportCounts": {
+    "placeholders": {
+      "sessions": {
+        "type": "int"
+      },
+      "rounds": {
+        "type": "int"
+      },
+      "sets": {
+        "type": "int"
+      },
+      "attempts": {
+        "type": "int"
+      }
+    }
+  },
+  "exportEmpty": "Данных пока нет. Проведите хотя бы одну операцию.",
+  "exportButton": "Поделиться файлом",
+  "exportPreparing": "Подготовка файла",
+  "exportError": "Не удалось подготовить или отправить файл",
+  "exportLoadError": "Не удалось прочитать данные",
+  "aboutTitle": "О приложении",
+  "aboutVersion": "Версия {version}",
+  "@aboutVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutDescription": "Офлайн-тренажёр: физические круги чередуются с когнитивными задачами.",
+  "aboutLicenses": "Лицензии",
+  "aboutFonts": "Шрифты Oswald и JetBrains Mono распространяются по лицензии SIL Open Font License 1.1.",
+  "aboutNotMedical": "Приложение не даёт медицинских рекомендаций: нагрузку подбирайте по самочувствию.",
+  "sessionLoading": "Подготовка операции",
+  "@sessionLoading": {
+    "description": "Экран сессии: строится план"
+  },
+  "sessionErrorTitle": "Не удалось начать операцию",
+  "sessionErrorNoExercises": "Нет упражнений для выбранного места. Смените место или добавьте упражнения.",
+  "sessionErrorEmptyTaskPool": "Нет доступных когнитивных задач: проверьте включённые категории и уровень сложности.",
+  "sessionErrorGeneric": "Не удалось построить план операции.",
+  "sessionBackToDashboard": "На дашборд",
+  "sessionRoundTitle": "Круг {n} из {total}",
+  "@sessionRoundTitle": {
+    "description": "Заголовок физической фазы",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionTaskTitle": "Задача {n} из {total}",
+  "@sessionTaskTitle": {
+    "description": "Заголовок когнитивной паузы",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionRestPhase": "Отдых",
+  "@sessionRestPhase": {
+    "description": "Название фазы пассивного отдыха (подпись рядом с глифом)"
+  },
+  "sessionRestTitle": "Пассивный отдых",
+  "sessionUnitReps": "повт.",
+  "@sessionUnitReps": {
+    "description": "Единица цели упражнения: повторения"
+  },
+  "sessionUnitSeconds": "с",
+  "@sessionUnitSeconds": {
+    "description": "Единица цели упражнения: секунды"
+  },
+  "sessionExerciseDone": "Выполнено",
+  "@sessionExerciseDone": {
+    "description": "Состояние упражнения для скринридера"
+  },
+  "sessionExerciseCurrent": "Текущее",
+  "@sessionExerciseCurrent": {
+    "description": "Состояние упражнения для скринридера"
+  },
+  "sessionExerciseUpcoming": "Впереди",
+  "@sessionExerciseUpcoming": {
+    "description": "Состояние упражнения для скринридера"
+  },
+  "sessionTimerRemaining": "Осталось {time}",
+  "@sessionTimerRemaining": {
+    "description": "Описание таймера для скринридера",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionTimerElapsed": "Круг идёт {time}",
+  "@sessionTimerElapsed": {
+    "description": "Описание таймера круга для скринридера",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionSetDone": "Подход выполнен",
+  "@sessionSetDone": {
+    "description": "Главная кнопка физической фазы"
+  },
+  "sessionSetCustom": "Другое число",
+  "@sessionSetCustom": {
+    "description": "Ввести фактически сделанное"
+  },
+  "sessionSkipExercise": "Пропустить",
+  "@sessionSkipExercise": {
+    "description": "Пропустить упражнение"
+  },
+  "sessionEvacuate": "Эвакуация",
+  "@sessionEvacuate": {
+    "description": "Единственная danger-кнопка: прервать операцию"
+  },
+  "sessionEvacuateTitle": "Прервать операцию?",
+  "sessionEvacuateBody": "Незавершённое упражнение не будет записано. Уже выполненное сохранится в итогах.",
+  "sessionEvacuateConfirm": "Прервать",
+  "sessionEvacuateCancel": "Продолжить",
+  "sessionActualTitle": "Сколько сделано?",
+  "@sessionActualTitle": {
+    "description": "Шторка ввода фактического результата подхода"
+  },
+  "sessionActualConfirm": "Записать",
+  "sessionKeyBackspace": "Стереть",
+  "@sessionKeyBackspace": {
+    "description": "Клавиша цифровой клавиатуры (для скринридера)"
+  },
+  "sessionKeyMinus": "Минус",
+  "@sessionKeyMinus": {
+    "description": "Клавиша цифровой клавиатуры (для скринридера)"
+  },
+  "sessionKeyDecimal": "Десятичный разделитель",
+  "@sessionKeyDecimal": {
+    "description": "Клавиша цифровой клавиатуры (для скринридера)"
+  },
+  "sessionRatingTitle": "Как прошёл прошлый круг?",
+  "sessionEffortHard": "Тяжело",
+  "sessionEffortNormal": "Нормально",
+  "sessionEffortEasy": "Легко",
+  "sessionRatingSaved": "Оценка круга: {label}",
+  "@sessionRatingSaved": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionAnswerSubmit": "Ответить",
+  "sessionAnswerHint": "Ваш ответ",
+  "sessionTaskSkip": "Пропустить задачу",
+  "sessionStudyHint": "Запоминайте",
+  "@sessionStudyHint": {
+    "description": "Подпись над текстом, который нужно запомнить"
+  },
+  "sessionStudyDone": "Запомнил",
+  "sessionRecallQuestionHint": "Вопрос по запомненному",
+  "@sessionRecallQuestionHint": {
+    "description": "Отложенный вопрос delayed_recall"
+  },
+  "sessionSpatialStudyHint": "Запомните расположение",
+  "sessionSpatialAnswerHint": "Нажмите клетку и подтвердите",
+  "sessionSpatialCell": "Ряд {row}, столбец {col}",
+  "@sessionSpatialCell": {
+    "description": "Клетка сетки (для скринридера)",
+    "placeholders": {
+      "row": {
+        "type": "int"
+      },
+      "col": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionOrderingHint": "Нажимайте шаги в верном порядке. Нажатие на выбранный шаг снимает его и все следующие.",
+  "sessionVerbalSpeak": "Говорите вслух",
+  "sessionVerbalFinish": "Закончил",
+  "sessionVerbalSelfCheckTitle": "Самопроверка",
+  "sessionVerbalSelfCheckHint": "Отвечайте честно: машина это не проверяет",
+  "sessionYes": "Да",
+  "sessionNo": "Нет",
+  "sessionCueTitle": "Смена условия",
+  "@sessionCueTitle": {
+    "description": "Подсказка посреди задачи; видна и без цвета"
+  },
+  "sessionTaskUnsupported": "Этот тип задачи пока не поддерживается",
+  "sessionOutcomeCorrect": "Задача: верно",
+  "sessionOutcomeWrong": "Задача: неверно",
+  "sessionOutcomeTimeout": "Задача: время вышло",
+  "sessionOutcomeSkipped": "Задача пропущена",
+  "sessionOutcomeSelfChecked": "Самопроверка принята",
+  "sessionOutcomeReveal": "Разбор: {text}",
+  "@sessionOutcomeReveal": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionFinishedTitle": "Операция завершена",
+  "@sessionFinishedTitle": {
+    "description": "Подпись экрана оценки последнего круга"
+  },
+  "sessionToSummary": "К итогам",
+  "sessionSummaryTitle": "Итоги операции",
+  "sessionSummaryStatusCompleted": "Завершена",
+  "sessionSummaryStatusAborted": "Прервана",
+  "sessionSummaryNotFound": "Операция {id} не найдена",
+  "@sessionSummaryNotFound": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionSummaryLoadError": "Не удалось прочитать итоги операции.",
+  "sessionSummaryGeneral": "Общее",
+  "sessionSummaryDuration": "Длительность",
+  "sessionSummaryRounds": "Кругов",
+  "sessionSummaryPhysical": "Физика",
+  "sessionSummarySets": "Подходов выполнено",
+  "sessionSummaryReps": "Повторения: факт / план",
+  "sessionSummarySeconds": "Секунды: факт / план",
+  "sessionSummaryTasks": "Задачи",
+  "sessionSummaryNoTasks": "Задач не было",
+  "sessionSummaryCorrect": "Верно",
+  "sessionSummaryWrong": "Неверно",
+  "sessionSummaryTimeout": "Время вышло",
+  "sessionSummarySkipped": "Пропущено",
+  "sessionSummaryLatency": "Средняя задержка ответа",
+  "sessionSummaryVerbal": "Вербальные (самопроверка)",
+  "@sessionSummaryVerbal": {
+    "description": "Машина их не проверяет; в Индекс не входят"
+  },
+  "sessionSummaryVerbalDone": "Отвечено",
+  "sessionSummaryVerbalRating": "Средняя самооценка",
+  "sessionSummaryToDashboard": "На дашборд",
+  "sessionSummaryNone": "—",
+  "@sessionSummaryNone": {
+    "description": "Нет данных"
+  },
+  "sessionSummaryOutOf": "{done} из {total}",
+  "@sessionSummaryOutOf": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionSummaryFactPlan": "{done} / {plan}",
+  "@sessionSummaryFactPlan": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "plan": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionSummarySecondsValue": "{sec} с",
+  "@sessionSummarySecondsValue": {
+    "placeholders": {
+      "sec": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionSummaryRatingValue": "{value} из 3",
+  "@sessionSummaryRatingValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  }
 }

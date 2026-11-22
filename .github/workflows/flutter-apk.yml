@@ -1,0 +1,126 @@
+name: Flutter APK
+
+# Сборка debug-APK Flutter-приложения apps/mobile с постоянной ссылкой без логина.
+# Живёт отдельно от build-apk.yml (старый Capacitor-прототип): тот публикует релизы
+# `build-N` с флагом --latest, и ссылка
+#   .../releases/latest/download/tactical-mind-body-debug.apk
+# должна остаться за ним. Поэтому здесь релиз — prerelease с фиксированным тегом
+# `flutter-latest` и --latest=false; «latest» не трогаем ни при каких условиях.
+#
+# Постоянная ссылка на Flutter-сборку:
+#   https://github.com/vladyslav-koshulko/tactical-mind-body/releases/download/flutter-latest/tactical-mind-body-flutter-debug.apk
+
+on:
+  push:
+    branches: [ main ]
+    # Те же исключения, что в flutter.yml: на Flutter-код они не влияют.
+    # apps/mobile/android сюда не попадает — паттерн android/** привязан к корню.
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - 'www/**'
+      - 'android/**'
+      - 'design/brand/**'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+# Один тег `flutter-latest` на всех: параллельные сборки не должны гоняться за него
+# (delete + create не атомарны). Запущенную сборку не отменяем — в очереди остаётся
+# только самая свежая, этого достаточно: ссылка всегда ведёт на последний main.
+concurrency:
+  group: flutter-apk-publish
+  cancel-in-progress: false
+
+env:
+  RELEASE_TAG: flutter-latest
+  APK_NAME: tactical-mind-body-flutter-debug.apk
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # Версия та же, что в flutter.yml (пин, чтобы сборка не менялась сама по себе).
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.50.0'
+          cache: true
+
+      # Android SDK уже есть на образе ubuntu-latest ($ANDROID_HOME), отдельный
+      # android-actions/setup-android не нужен (он к тому же падает на пакете `tools`).
+      # NDK нужен дважды: build hooks пакета sqlite3 компилируют нативный код
+      # (Flutter ищет NDK через ANDROID_NDK_HOME / $ANDROID_HOME/ndk), а Gradle
+      # требует ndkVersion из Flutter-плагина. Ставим ровно ту версию, которую
+      # просит Flutter 3.50.0, и берём её из самого SDK, чтобы пин не устарел.
+      - name: Install Android NDK
+        run: |
+          FLUTTER_ROOT="${FLUTTER_ROOT:-$(dirname "$(dirname "$(command -v flutter)")")}"
+          NDK_VERSION="$(grep -oP 'ndkVersion: String = "\K[^"]+' \
+            "$FLUTTER_ROOT/packages/flutter_tools/gradle/src/main/kotlin/FlutterExtension.kt" || true)"
+          NDK_VERSION="${NDK_VERSION:-28.2.13676358}"
+          echo "NDK: $NDK_VERSION"
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" --install "ndk;$NDK_VERSION" > /dev/null
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+
+      # Один pub get в корне резолвит весь workspace (packages/* и apps/*).
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Build debug APK
+        working-directory: apps/mobile
+        run: flutter build apk --debug
+
+      - name: Locate APK
+        run: |
+          APK="$(find apps/mobile/build -name 'app-debug.apk' -path '*flutter-apk*' | head -n 1)"
+          if [ -z "$APK" ]; then
+            echo "::error::app-debug.apk не найден после сборки"
+            find apps/mobile/build -name '*.apk' || true
+            exit 1
+          fi
+          cp "$APK" "$APK_NAME"
+          ls -l "$APK_NAME"
+
+      # Artifact скачивается только с логином GitHub — это запасной вариант.
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tactical-mind-body-flutter-debug-apk
+          path: ${{ env.APK_NAME }}
+
+      # Релиз-ассет — постоянная ссылка без логина. Тег пересоздаётся на каждой сборке
+      # (--cleanup-tag удаляет и тег, иначе новый релиз останется на старом коммите).
+      # --prerelease и --latest=false обязательны: иначе «latest» уведёт ссылку прототипа.
+      - name: Publish APK to Releases
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          SUBJECT="$(git log -1 --pretty=%s)"
+          gh release delete "$RELEASE_TAG" --cleanup-tag --yes || true
+          gh release create "$RELEASE_TAG" "$APK_NAME" \
+            --target "$GITHUB_SHA" \
+            --title "Flutter debug (последняя сборка main)" \
+            --notes "Автосборка Flutter-приложения из \`$SHORT_SHA\` — $SUBJECT
+
+          Debug-версия для установки на свои устройства (разрешите установку из неизвестных источников).
+          Релиз перезаписывается на каждый push в main. Постоянная ссылка: https://github.com/${{ github.repository }}/releases/download/$RELEASE_TAG/$APK_NAME
+
+          Старый HTML-прототип собирается отдельно: https://github.com/${{ github.repository }}/releases/latest/download/tactical-mind-body-debug.apk" \
+            --prerelease \
+            --latest=false

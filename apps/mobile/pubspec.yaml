@@ -39,12 +39,17 @@ dependencies:
   tmb_domain: any
   tmb_data: any
   tmb_ui: any
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-
+  flutter_riverpod: ^3.5.0
+  go_router: ^18.1.4
+  drift_flutter: ^0.3.1
+  uuid: ^4.6.0
+  wakelock_plus: ^1.8.2
+  share_plus: ^13.3.1
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  # Сквозной тест на эмуляторе: integration_test/ (scripts/emu.sh test).
+  integration_test:
     sdk: flutter
 
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -53,6 +58,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  drift: ^2.35.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -76,6 +82,17 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # Встроенные паки. Единственный источник — assets/content/ в корне репозитория
+  # (его валидирует CI); assets/content здесь — симлинк на него, потому что
+  # Flutter молча игнорирует ассеты вне каталога пакета. Каталоги ассетов не
+  # рекурсивны: новая локаль (assets/content/uk/) требует своей строки здесь.
+  assets:
+    - assets/content/ru/
+    # Тексты лицензий шрифтов (OFL): регистрируются в LicenseRegistry,
+    # показываются на экране «О приложении».
+    - assets/fonts/OFL-Oswald.txt
+    - assets/fonts/OFL-JetBrainsMono.txt
 
   # To add assets to your application, add an assets section, like this:
   # assets:
