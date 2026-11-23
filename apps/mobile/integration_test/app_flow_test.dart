@@ -3,8 +3,11 @@
 // `scripts/emu.sh test` (или целиком — `scripts/ci-local.sh`), скриншоты каждого
 // шага складываются в build/local-ci/screenshots/.
 //
-// Тесты идут по порядку и делят одну БД на устройстве: второй опирается на то,
-// что первый оставил на дашборде «Прервана» (и проверяет, что стало «Завершена»).
+// Тесты делят одну БД на устройстве, но не зависят друг от друга.
+//
+// Каждый сценарий сам стирает данные приложения и (при необходимости) сам
+// выставляет нужные настройки — порядок и «грязное» состояние устройства не
+// важны (`_resetAppState`). Тест можно гонять сколько угодно раз подряд.
 //
 //  1. дашборд → сессия → эвакуация → итоги → дашборд (быстрый дым-тест);
 //  2. полная короткая сессия офлайн: настройки (2 круга, окно 30 с) → физика →
@@ -15,7 +18,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:tmb_data/tmb_data.dart';
 import 'package:tmb_mobile/app/app.dart';
+import 'package:tmb_mobile/data/providers.dart';
+import 'package:tmb_mobile/data/session_summary_store.dart';
 import 'package:tmb_mobile/features/session/cognitive_view.dart';
 import 'package:tmb_mobile/features/session/session_screen.dart';
 import 'package:tmb_mobile/features/session/session_summary_screen.dart';
@@ -62,13 +68,55 @@ String _visibleTexts() =>
         .join(' | ');
 
 /// Нажимает [finder] и даёт кадрам отработать (запись в БД, смена экрана).
+/// Нет виджета — падение с понятным сообщением и списком видимых строк
+/// (а не «Bad state: No element» из `ensureVisible`).
 Future<void> _tap(WidgetTester tester, Finder finder) async {
+  if (finder.evaluate().isEmpty) {
+    fail('Нечего нажимать: $finder. На экране: ${_visibleTexts()}');
+  }
   // Кнопка может стоять ниже экрана (ответ, пропуск и т. п. внутри прокрутки):
   // сначала докручиваем. «Эвакуация» закреплена и видна всегда.
   await tester.ensureVisible(finder.first);
   await tester.pump(const Duration(milliseconds: 100));
   await tester.tap(finder.first);
   await tester.pump(const Duration(milliseconds: 400));
+}
+
+/// Поднимает приложение и приводит данные к чистому первому запуску: стирает
+/// все таблицы БД и последнюю сводку, затем (если нужно) выставляет
+/// [prefs]. Так сценарий не зависит ни от прошлых прогонов, ни от порядка тестов.
+/// Возвращает после того, как дашборд показал кнопку старта на чистых данных.
+Future<void> _startApp(
+  WidgetTester tester,
+  IntegrationTestWidgetsFlutterBinding binding,
+  Locale locale,
+  AppLocalizations l10n, {
+  SessionPreferences? prefs,
+}) async {
+  await tester.pumpWidget(ProviderScope(child: TmbApp(locale: locale)));
+  await binding.convertFlutterSurfaceToImage();
+  await _waitFor(tester, _label(l10n.startOperation));
+  final container = ProviderScope.containerOf(
+    tester.element(find.byType(TmbApp)),
+  );
+  // Работа с БД — настоящий async: runAsync, иначе фейковые часы теста её не дождутся.
+  await tester.runAsync(() async {
+    final db = container.read(databaseProvider);
+    await db.transaction(() async {
+      await db.customStatement('PRAGMA defer_foreign_keys = ON');
+      for (final table in db.allTables) {
+        await db.delete(table).go();
+      }
+    });
+    await container.read(sessionSummaryStoreProvider).clear();
+    if (prefs != null) {
+      await container
+          .read(profileRepositoryProvider)
+          .saveSessionPreferences(prefs);
+    }
+  });
+  await tester.pump(const Duration(milliseconds: 500));
+  await _waitFor(tester, _label(l10n.startOperation));
 }
 
 /// Жмёт «Подход выполнен», пока кнопка есть: круг кончается, когда движок
@@ -137,11 +185,11 @@ void main() {
   }
 
   testWidgets('дашборд → сессия → эвакуация → итоги → дашборд', (tester) async {
-    await tester.pumpWidget(const ProviderScope(child: TmbApp()));
-    await binding.convertFlutterSurfaceToImage();
+    await _startApp(tester, binding, const Locale('ru'), _ru);
 
-    // 1. Дашборд.
-    await _waitFor(tester, _label(_ru.startOperation));
+    // 1. Дашборд на чистых данных: последней операции ещё нет.
+    expect(_label(_ru.dashboardLastOperationInterrupted), findsNothing);
+    expect(_label(_ru.dashboardLastOperationDone), findsNothing);
     await shot(tester, '01_dashboard');
 
     // 2. Старт: должен собраться план и открыться физическая фаза.
@@ -170,18 +218,19 @@ void main() {
     // 6. Назад на дашборд.
     await tester.tap(_label(_ru.sessionSummaryToDashboard).first);
     await _waitFor(tester, _label(_ru.startOperation));
+    // Дашборд помнит прерванную операцию.
+    await _waitFor(tester, _label(_ru.dashboardLastOperationInterrupted));
     await shot(tester, '06_dashboard_after');
   });
 
   testWidgets('полная короткая сессия офлайн: настройки → физика → '
       'когниция (+ фон) → физика → «Завершена»', (tester) async {
-    await tester.pumpWidget(const ProviderScope(child: TmbApp()));
-    await binding.convertFlutterSurfaceToImage();
     final l10n = _ru;
+    await _startApp(tester, binding, const Locale('ru'), l10n);
 
-    // 1. Дашборд помнит прерванную операцию из прошлого теста.
-    await _waitFor(tester, _label(l10n.startOperation));
-    await _waitFor(tester, _label(l10n.dashboardLastOperationInterrupted));
+    // 1. Чистый дашборд: на нём ещё нет ни «Прервана», ни «Завершена».
+    expect(_label(l10n.dashboardLastOperationInterrupted), findsNothing);
+    expect(_label(l10n.dashboardLastOperationDone), findsNothing);
     await shot(tester, '10_dashboard_before');
 
     // 2. Настройки: 2 круга (стоят 5) и окно 30 с (стоит 180) — иначе тест
@@ -309,13 +358,15 @@ void main() {
   testWidgets(
     'украинская локаль: дашборд, настройки, физика, когниция, итоги',
     (tester) async {
-      await tester.pumpWidget(
-        const ProviderScope(child: TmbApp(locale: Locale('uk'))),
-      );
-      await binding.convertFlutterSurfaceToImage();
       final l10n = _uk;
-
-      await _waitFor(tester, _label(l10n.startOperation));
+      // Два круга и короткое окно заданы тут, а не унаследованы от прошлого теста.
+      await _startApp(
+        tester,
+        binding,
+        const Locale('uk'),
+        l10n,
+        prefs: const SessionPreferences(rounds: 2, cognitiveSec: 30),
+      );
       await shot(tester, '30_uk_dashboard');
 
       await tester.tap(find.byTooltip(l10n.dashboardSettings));

@@ -6,8 +6,8 @@
 #   scripts/ci-local.sh --no-emu     без эмулятора (быстрый прогон)
 #   scripts/ci-local.sh --keep-data  не стирать данные приложения после тестов
 #
-# В конце на эмуляторе остаётся ПОСЛЕДНЯЯ проверенная сборка, запущенная с чистого
-# состояния — именно её смотрит владелец. Отчёт: build/local-ci/report.md,
+# В конце на эмуляторе остаётся ПОСЛЕДНЯЯ проверенная БОЕВАЯ сборка (lib/main.dart, не
+# тестовая с integration_test/), запущенная с чистого состояния — именно её смотрит владелец. Отчёт: build/local-ci/report.md,
 # скриншоты: build/local-ci/screenshots/, отметка: build/local-ci/last-verified.txt.
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/env.sh"
@@ -68,16 +68,21 @@ stage "golden"         in_dir apps/mobile flutter test --tags golden test/golden
 stage "validate packs" in_dir . dart run packages/tmb_domain/bin/validate_packs.dart assets/content
 
 if [ "$FAILED" -eq 0 ]; then
-  stage "build apk" in_dir apps/mobile flutter build apk --debug
+  # Боевой APK (lib/main.dart) → build/local-ci/app-main-debug.apk. Именно его ставим
+  # на эмулятор: общий app-debug.apk затем перезапишет `flutter drive` тестовой сборкой.
+  stage "build apk" "$TMB_REPO/scripts/emu.sh" build
 fi
+export TMB_SKIP_BUILD=1
 
 if [ "$USE_EMU" -eq 1 ] && [ "$FAILED" -eq 0 ]; then
   stage "emulator start"  "$TMB_REPO/scripts/emu.sh" start
   stage "emulator reset"  "$TMB_REPO/scripts/emu.sh" reset
   stage "emulator e2e"    "$TMB_REPO/scripts/emu.sh" test
-  # Оставляем на эмуляторе именно ту сборку, что прошла проверку, — чистой.
+  # Оставляем на эмуляторе именно ту боевую сборку, что прошла проверку, — чистой.
+  # (`emu.sh test` сам возвращает её в конце; install проверяет, что стоит не тестовая.)
   if [ "$FAILED" -eq 0 ]; then
     stage "emulator install" "$TMB_REPO/scripts/emu.sh" install
+    stage "emulator build check" bash -c '"$0" status | tee /dev/stderr | grep -q "боевая (lib/main.dart)"' "$TMB_REPO/scripts/emu.sh"
     [ "$KEEP_DATA" -eq 1 ] || { "$TMB_REPO/scripts/emu.sh" reset >/dev/null 2>&1; "$TMB_REPO/scripts/emu.sh" launch >/dev/null 2>&1; }
     sleep 3
     "$TMB_REPO/scripts/emu.sh" shot "99_final_state" >/dev/null 2>&1 || true

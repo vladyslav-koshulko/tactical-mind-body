@@ -14,3 +14,6 @@ build/
 
 # Генерируется Flutter-плагинами при сборке (корневой android/ — Capacitor-прототип)
 android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+
+# Рабочие копии агентов
+.claude/worktrees/
